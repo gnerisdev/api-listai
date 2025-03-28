@@ -1,0 +1,48 @@
+import mongoose from 'mongoose';
+import moment from 'moment-timezone';
+const { Schema } = mongoose;
+
+const units = ['g', 'kg', 'mL', 'L', 'un', 'pct', 'cx', 'porc'];
+
+const productsSchema = new Schema({
+  company: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'companies',
+    require: true,
+  },
+  category: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'categories',
+    require: true,
+  },
+  complements: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'complements',
+    },
+  ],
+  name: {
+    type: String,
+    required: true,
+  },
+  description: String,
+  code: String,
+  price: {
+    type: Number,
+    required: true,
+  },
+  priceDiscount: Number,
+  unit: {
+    type: String,
+    lowercase: true,
+  },
+  isActive: {
+    type: Boolean,
+    required: true,
+  },
+  images: [{ url: String, id: String }],
+  displayPosition: { type: Number },
+  date: { type: Date, default: () => moment().tz('America/Sao_Paulo') },
+});
+
+export default mongoose.model('products', productsSchema);

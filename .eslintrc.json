@@ -1,0 +1,13 @@
+{
+  "extends": [
+    "plugin:prettier/recommended"
+  ],
+  "requireConfigFile": false,
+  "parser": "babel-eslint",
+
+  "plugins": ["prettier"],
+
+  "rules": {
+    "prettier/prettier": "error"
+  }
+}

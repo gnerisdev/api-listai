@@ -1,0 +1,49 @@
+{
+  "dependencies": {
+    "@nestjs/typeorm": "^11.0.0",
+    "@prisma/client": "^6.5.0",
+    "axios": "^1.4.0",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^1.30.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "jsonwebtoken": "^8.5.1",
+    "mercadopago": "^1.5.17",
+    "moment-timezone": "^0.5.43",
+    "mongoose": "^6.4.2",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.14.0",
+    "nodemailer": "^6.9.7",
+    "prisma": "^6.5.0",
+    "sequelize": "^6.37.6",
+    "web-push": "^3.6.6",
+    "winston": "^3.13.0"
+  },
+  "name": "expresso",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "homepage": "/admin",
+  "devDependencies": {
+    "babel-eslint": "^10.1.0",
+    "eslint": "^8.19.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "nodemon": "^2.0.18",
+    "prettier": "^2.7.1",
+    "sequelize-cli": "^6.6.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --env-file .env src/index.js",
+    "dev": "nodemon src/index.js",
+    "migration:generate": "npx typeorm migration:generate -d ./ormconfig.js -n",
+    "migration:run": "npx typeorm migration:run -d ./ormconfig.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
