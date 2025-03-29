@@ -1,7 +1,4 @@
 import nodemailer from 'nodemailer';
-import orderTemplate from '../emails/orderTemplate.js';
-import codeTemplate from '../emails/codeTemplate.js';
-import orderClientTemplate from '../emails/orderClientTemplate.js';
 import { EMAIL_ROOT, EMAIL_ROOT_PASS } from '../environments/index.js';
 import { LogUtils } from '../utils/LogUtils.js';
 
@@ -40,12 +37,11 @@ export class EmailService {
   }
 
   sendEmailOrder = (mailOptions, order, company = null) => {
-    const renderHtml = company ? orderClientTemplate(order, company) : orderTemplate(order);
     const data = { 
       from: `Pedido ${this.#userEmail}`, 
       to: mailOptions.to, 
       subject: mailOptions.subject,
-      html: renderHtml
+      html: ''
     };
 
     const transporter = this.getTransporter('delivery');
@@ -60,7 +56,7 @@ export class EmailService {
       from: this.#userEmail, 
       to: mailOptions.to, 
       subject: mailOptions.subject,
-      html: codeTemplate(code, name)
+      html: ''
     };
 
     const transporter = this.getTransporter();
