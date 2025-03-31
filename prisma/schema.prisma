@@ -8,16 +8,19 @@ datasource db {
 }
 
 model users {
-  id           Int       @id @default(autoincrement())
-  first_name   String
-  last_name    String
-  email        String    @unique
-  phone_number String
-  password     String
-  source       String?
-  active       Boolean   @default(true)
-  created_at   DateTime  @default(now())
-  updated_at   DateTime? @updatedAt
+  id            Int       @id @default(autoincrement())
+  first_name    String
+  last_name     String
+  email         String    @unique
+  phone_number  String
+  password      String
+  source        String?
+  active        Boolean   @default(true)
+  last_event_id Int?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime? @updatedAt
+
+  events users_events[] @relation("UserEvents")
 }
 
 model events {
@@ -27,11 +30,16 @@ model events {
   slug                String    @unique
   date                DateTime?
   location            String?
-  description         String?
-  event_categories_id Int
+  description         String?   @db.VarChar(1000)
+  title_description   String?
+  color               String    @default("#432070")
   active              Boolean   @default(true)
+  event_categories_id Int
   created_at          DateTime  @default(now())
   updated_at          DateTime? @updatedAt
+
+  users         users_events[]  @relation("UserEvents")
+  event_details event_details[]
 }
 
 model events_gifts {
@@ -51,7 +59,12 @@ model users_events {
   created_at DateTime  @default(now())
   updated_at DateTime? @updatedAt
 
+  user  users  @relation("UserEvents", fields: [user_id], references: [id])
+  event events @relation("UserEvents", fields: [event_id], references: [id])
+
   @@id([user_id, event_id])
+  @@index([user_id])
+  @@index([event_id])
 }
 
 model event_types {
@@ -70,6 +83,26 @@ model event_categories {
   event_type_id Int
   created_at    DateTime  @default(now())
   updated_at    DateTime? @updatedAt
+}
+
+model event_details {
+  id                    Int       @id @default(autoincrement())
+  event_id              Int
+  event_date            DateTime
+  start_time            DateTime
+  end_time              DateTime
+  event_type            String
+  event_location        String?
+  postal_code           String?
+  full_address          String?
+  transmission_link     String?
+  transmission_password String?
+  created_at            DateTime  @default(now())
+  updated_at            DateTime? @updatedAt
+
+  event events @relation(fields: [event_id], references: [id])
+
+  @@index([event_id])
 }
 
 model gifts {

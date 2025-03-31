@@ -41,15 +41,40 @@ export class ValidationUtils {
       : 'A senha precisa ter no mínimo 8 caracteres, pelo menos uma letra e um número.';
   }
 
-  static description(value) {
-    return value && value.length >= 20 && value.length <= 200
+  static title(value) {
+    return value && value.length >= 5 && value.length <= 150
       ? true
-      : 'A descrição precisa ter no mínimo 20 letras e no máximo 200 letras.';
+      : 'O título precisa ter no mínimo 5 caracteres e no máximo 150 caracteres.';
+  }
+
+  static subtitle(value) {
+    return value && value.length >= 5 && value.length <= 150
+      ? true
+      : 'O subtítulo precisa ter no mínimo 5 caracteres e no máximo 150 caracteres.';
+  }
+
+  static titleDescription(value) {
+    return value && value.length >= 5 && value.length <= 150
+      ? true
+      : 'A título da Introdução precisa ter no mínimo 5 caracteres e no máximo 150 caracteres.';
+  }
+
+  static description(value) {
+    return value && value.length >= 5 && value.length <= 1000
+      ? true
+      : 'A Introdução precisa ter no mínimo 5 caracteres e no máximo 1000 caracteres.';
   }
  
   static string(value) {
     return value && value.length >= 3 && value.length <= 70
       ? true
       : 'O nome do seu negócio precisa ter no mínimo 3 letras e no máximo 70 letras.';
+  }
+
+  static hexColor(value) {
+    const validationHexColor = /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
+    return validationHexColor.test(value)
+      ? true
+      : 'A cor deve estar no formato hexadecimal (#RRGGBB ou #RRGGBBAA).';
   }
 }

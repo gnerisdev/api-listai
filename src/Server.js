@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
-import routeUsers from './routes/users/main.js';
-import routeAdmin from './routes/admin/main.js';
-import routGuests from './routes/guests/main.js';
+import usersRoutes from './routes/usersRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import guestsRoutes from './routes/guestsRoutes.js';
 import { PORT } from './environments/index.js';
 import './settings/cloudinary.js';
 import './settings/database.js';
@@ -27,9 +27,9 @@ class Server {
   }
 
   route() {
-    this.app.use('/api/admin', routeAdmin);
-    this.app.use('/api/users', routeUsers);
-    this.app.use('/api/guests', routGuests);
+    this.app.use('/api/admin', adminRoutes);
+    this.app.use('/api/users', usersRoutes);
+    this.app.use('/api/guests', guestsRoutes);
   }
 }
 
