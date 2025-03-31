@@ -75,6 +75,18 @@ export class ValidationUtils {
     const validationHexColor = /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
     return validationHexColor.test(value)
       ? true
-      : 'A cor deve estar no formato hexadecimal (#RRGGBB ou #RRGGBBAA).';
+      : 'A cor inválida.';
+  }
+
+  static hours(value) {  
+    const regex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    if (!regex.test(value)) return 'Formato inválido';
+
+    const [hours, minutes] = value.split(':').map(Number);
+    if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+      return 'Valores inválidos';
+    }
+  
+    return true;
   }
 }

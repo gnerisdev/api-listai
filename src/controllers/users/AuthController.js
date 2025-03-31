@@ -20,24 +20,22 @@ class AuthController {
     if (!data.event) messages.push('Evento é obrigatório.');
   
     const validationFirstName = ValidationUtils.firstName(data.firstName);
-    if (validationFirstName !== true) messages.push(validationFirstName);
-  
     const validationLastName = ValidationUtils.lastName(data.lastName);
-    if (validationLastName !== true) messages.push(validationLastName);
-  
     const validationEmail = ValidationUtils.email(data.email);
-    if (validationEmail !== true) messages.push(validationEmail);
-  
-    data.phoneNumber = data.phoneNumber.replace(/\D/g, ''); 
     const validationPhoneNumber = ValidationUtils.phoneNumber(data.phoneNumber);
-    if (validationPhoneNumber !== true) messages.push(validationPhoneNumber);
-  
     const validationPassword = ValidationUtils.password(data.password);
+    data.phoneNumber = data.phoneNumber.replace(/\D/g, ''); 
+
+    if (validationFirstName !== true) messages.push(validationFirstName);
+    if (validationLastName !== true) messages.push(validationLastName);
+    if (validationEmail !== true) messages.push(validationEmail);
+    if (validationPhoneNumber !== true) messages.push(validationPhoneNumber);
     if (validationPassword !== true) messages.push(validationPassword);
   
     if (messages.length) {
       return res.status(400).json({
-        success: false, message: `${messages.map(error => `• ${error}`).join('\n <br>')}`
+        success: false, 
+        message: `${messages.map(error => `• ${error}`).join('\n <br>')}`
       });
     }
   
