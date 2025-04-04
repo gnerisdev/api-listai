@@ -40,11 +40,14 @@ export class GiftsController {
           price,
           event_categories_id
         }
+<<<<<<< HEAD
         /*name:name, 
         description:description, 
         price:price, 
         event_categories_id:event_categories_id
         */
+=======
+>>>>>>> 51ce8fe212e5c508971639fc12a3979dd5d1f7c4
       });
 
       console.log(req.body)

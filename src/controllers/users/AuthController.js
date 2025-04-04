@@ -7,7 +7,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-class Auth {
+class AuthController {
   async register(req, res) {  
     const data = { ...req.body };
     const messages = [];
@@ -20,24 +20,22 @@ class Auth {
     if (!data.event) messages.push('Evento é obrigatório.');
   
     const validationFirstName = ValidationUtils.firstName(data.firstName);
-    if (validationFirstName !== true) messages.push(validationFirstName);
-  
     const validationLastName = ValidationUtils.lastName(data.lastName);
-    if (validationLastName !== true) messages.push(validationLastName);
-  
     const validationEmail = ValidationUtils.email(data.email);
-    if (validationEmail !== true) messages.push(validationEmail);
-  
-    data.phoneNumber = data.phoneNumber.replace(/\D/g, ''); 
     const validationPhoneNumber = ValidationUtils.phoneNumber(data.phoneNumber);
-    if (validationPhoneNumber !== true) messages.push(validationPhoneNumber);
-  
     const validationPassword = ValidationUtils.password(data.password);
+    data.phoneNumber = data.phoneNumber.replace(/\D/g, ''); 
+
+    if (validationFirstName !== true) messages.push(validationFirstName);
+    if (validationLastName !== true) messages.push(validationLastName);
+    if (validationEmail !== true) messages.push(validationEmail);
+    if (validationPhoneNumber !== true) messages.push(validationPhoneNumber);
     if (validationPassword !== true) messages.push(validationPassword);
   
     if (messages.length) {
       return res.status(400).json({
-        success: false, message: `${messages.map(error => `• ${error}`).join('\n <br>')}`
+        success: false, 
+        message: `${messages.map(error => `• ${error}`).join('\n <br>')}`
       });
     }
   
@@ -108,28 +106,24 @@ class Auth {
         return res.status(401).json({ success: false, message: 'Email inválido!' });
       }
 
-      // const company = await Model.findOne({ 'email': data.email.trim() })
-      //   .select('name email password');
+      const user = await prisma.users.findUnique({ where: { 'email': data.email.trim() } });
 
-      // if (!company || !bcrypt.compareSync(data.password, company.password)) {
-      //   return res.status(401).json({ success: false, message: 'Senha ou email incorreto!' });
-      // }
-
-      delete data?.subscription?.expirationTime;
-
-      // await Model.findByIdAndUpdate(company._id, { subscription: data?.subscription });
+      if (!user || !bcrypt.compareSync(data.password, user.password)) {
+        return res.status(401).json({ success: false, message: 'Senha ou email incorreto!' });
+      }
 
       const token = jwt.sign(
-        { id: company._id, email: company.email },
+        { id: user.id, email: user.email }, 
         TOKEN_KEY,
-        { expiresIn: '200d' }
+        { expiresIn: '1d' }
       );
 
       return res.status(200).json({
         success: true,
-        message: 'Logado.',
+        message: 'Logado!',
         token,
-        id: company._id
+        id: user.id,
+        name: user.first_name + ' ' + user.last_name
       });
     } catch (error) {
       console.log(error);
@@ -202,4 +196,4 @@ class Auth {
   }  
 }
 
-export default Auth;
+export default AuthController;

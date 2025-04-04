@@ -7,17 +7,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model users {
-  id           Int       @id @default(autoincrement())
+model admins {
+  id           Int     @id @default(autoincrement())
   first_name   String
   last_name    String
-  email        String    @unique
+  email        String  @unique
   phone_number String
   password     String
-  source       String?
-  active       Boolean   @default(true)
-  created_at   DateTime  @default(now())
-  updated_at   DateTime? @updatedAt
+  active       Boolean @default(true)
+}
+
+model users {
+  id            Int       @id @default(autoincrement())
+  first_name    String
+  last_name     String
+  email         String    @unique
+  phone_number  String
+  password      String
+  source        String?
+  active        Boolean   @default(true)
+  last_event_id Int?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime? @updatedAt
+
+  events           users_events[]     @relation("UserEvents")
+  gift_suggestions gift_suggestions[]
 }
 
 model events {
@@ -27,11 +41,18 @@ model events {
   slug                String    @unique
   date                DateTime?
   location            String?
-  description         String?
-  event_categories_id Int
+  description         String?   @db.VarChar(1000)
+  title_description   String?
+  color               String    @default("#432070")
   active              Boolean   @default(true)
+  event_categories_id Int
   created_at          DateTime  @default(now())
   updated_at          DateTime? @updatedAt
+
+  users            users_events[]     @relation("UserEvents")
+  event_details    event_details[]
+  gifts            events_gifts[]     @relation("EventsGifts")
+  gift_suggestions gift_suggestions[]
 }
 
 model events_gifts {
@@ -39,6 +60,10 @@ model events_gifts {
   gift_id    Int
   created_at DateTime  @default(now())
   updated_at DateTime? @updatedAt
+  deleted_at  DateTime?
+
+  event events @relation("EventsGifts", fields: [event_id], references: [id])
+  gift  gifts  @relation("EventsGifts", fields: [gift_id], references: [id])
 
   @@id([event_id, gift_id])
   @@index([gift_id])
@@ -51,7 +76,12 @@ model users_events {
   created_at DateTime  @default(now())
   updated_at DateTime? @updatedAt
 
+  user  users  @relation("UserEvents", fields: [user_id], references: [id])
+  event events @relation("UserEvents", fields: [event_id], references: [id])
+
   @@id([user_id, event_id])
+  @@index([user_id])
+  @@index([event_id])
 }
 
 model event_types {
@@ -72,6 +102,29 @@ model event_categories {
   updated_at    DateTime? @updatedAt
 }
 
+model event_details {
+  id                    Int       @id @default(autoincrement())
+  event_id              Int
+  event_date            DateTime
+  start_time            DateTime
+  end_time              DateTime
+  event_type            String
+  event_location        String?
+  postal_code           String?
+  full_address          String?
+  transmission          String?
+  transmission_link     String?
+  transmission_password String?
+  latitude              Float?
+  longitude             Float?
+  created_at            DateTime  @default(now())
+  updated_at            DateTime? @updatedAt
+
+  event events @relation(fields: [event_id], references: [id])
+
+  @@index([event_id])
+}
+
 model gifts {
   id                  Int       @id @default(autoincrement())
   name                String
@@ -80,4 +133,23 @@ model gifts {
   event_categories_id Int
   created_at          DateTime  @default(now())
   updated_at          DateTime? @updatedAt
+  deleted_at           DateTime?
+
+  events events_gifts[] @relation("EventsGifts")
+}
+
+model gift_suggestions {
+  id          Int       @id @default(autoincrement())
+  user_id     Int
+  event_id    Int
+  title       String
+  description String?    @db.VarChar(500)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime? @updatedAt
+
+  user  users  @relation(fields: [user_id], references: [id])
+  event events @relation(fields: [event_id], references: [id])
+
+  @@index([user_id])
+  @@index([event_id])
 }
