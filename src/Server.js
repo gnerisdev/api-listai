@@ -8,7 +8,9 @@ import './settings/cloudinary.js';
 import './settings/database.js';
 
 class Server {
-  app = express();
+  constructor() {
+    this.app = express();
+  }
 
   async start() {
     try {

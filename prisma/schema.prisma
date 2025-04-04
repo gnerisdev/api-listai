@@ -8,13 +8,13 @@ datasource db {
 }
 
 model admins {
-  id            Int       @id @default(autoincrement())
-  first_name    String
-  last_name     String
-  email         String    @unique
-  phone_number  String
-  password      String
-  active        Boolean   @default(true)
+  id           Int     @id @default(autoincrement())
+  first_name   String
+  last_name    String
+  email        String  @unique
+  phone_number String
+  password     String
+  active       Boolean @default(true)
 }
 
 model users {
@@ -30,7 +30,8 @@ model users {
   created_at    DateTime  @default(now())
   updated_at    DateTime? @updatedAt
 
-  events users_events[] @relation("UserEvents")
+  events           users_events[]     @relation("UserEvents")
+  gift_suggestions gift_suggestions[]
 }
 
 model events {
@@ -48,8 +49,10 @@ model events {
   created_at          DateTime  @default(now())
   updated_at          DateTime? @updatedAt
 
-  users         users_events[]  @relation("UserEvents")
-  event_details event_details[]
+  users            users_events[]     @relation("UserEvents")
+  event_details    event_details[]
+  gifts            events_gifts[]     @relation("EventsGifts")
+  gift_suggestions gift_suggestions[]
 }
 
 model events_gifts {
@@ -57,6 +60,10 @@ model events_gifts {
   gift_id    Int
   created_at DateTime  @default(now())
   updated_at DateTime? @updatedAt
+  deleted_at  DateTime?
+
+  event events @relation("EventsGifts", fields: [event_id], references: [id])
+  gift  gifts  @relation("EventsGifts", fields: [gift_id], references: [id])
 
   @@id([event_id, gift_id])
   @@index([gift_id])
@@ -126,4 +133,23 @@ model gifts {
   event_categories_id Int
   created_at          DateTime  @default(now())
   updated_at          DateTime? @updatedAt
+  deleted_at           DateTime?
+
+  events events_gifts[] @relation("EventsGifts")
+}
+
+model gift_suggestions {
+  id          Int       @id @default(autoincrement())
+  user_id     Int
+  event_id    Int
+  title       String
+  description String?    @db.VarChar(500)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime? @updatedAt
+
+  user  users  @relation(fields: [user_id], references: [id])
+  event events @relation(fields: [event_id], references: [id])
+
+  @@index([user_id])
+  @@index([event_id])
 }

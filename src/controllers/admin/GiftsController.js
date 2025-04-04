@@ -40,11 +40,6 @@ export class GiftsController {
           price,
           event_categories_id
         }
-        /*name:name, 
-        description:description, 
-        price:price, 
-        event_categories_id:event_categories_id
-        */
       });
 
       console.log(req.body)
