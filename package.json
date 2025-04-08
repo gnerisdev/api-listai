@@ -38,7 +38,8 @@
     "start": "node --env-file .env src/index.js",
     "dev": "nodemon src/index.js",
     "migration:generate": "npx typeorm migration:generate -d ./ormconfig.js -n",
-    "migration:run": "npx typeorm migration:run -d ./ormconfig.js"
+    "migration:run": "npx typeorm migration:run -d ./ormconfig.js",
+    "prisma": "prisma"
   },
   "keywords": [],
   "author": "",
