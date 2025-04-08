@@ -39,8 +39,6 @@ model events {
   title               String
   subtitle            String
   slug                String    @unique
-  date                DateTime?
-  location            String?
   description         String?   @db.VarChar(1000)
   title_description   String?
   color               String    @default("#432070")
