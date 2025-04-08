@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { GiftsController } from '../controllers/admin/GiftsController.js';
 import ManageUsersController from '../controllers/admin/ManageUsersController.js';
+import AuthController from '../controllers/admin/AuthController.js';
 
 const router = Router();
 
@@ -12,6 +13,8 @@ router.get('/gifts', giftsController.getGifts);
 router.post('/gifts', giftsController.registerGift);
 router.put('/gifts/:id', giftsController.updateGift);
 router.delete('/gifts/:id', (req, res) => giftsController.removeGift(req, res))
+//Login
+router.post('/login', AuthController.login);
 // Users
 router.get('/users', manageUsersController.listUsers);
 router.get('/users/:user_id', manageUsersController.getUser);
