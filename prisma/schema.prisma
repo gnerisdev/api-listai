@@ -153,3 +153,18 @@ model gift_suggestions {
   @@index([user_id])
   @@index([event_id])
 }
+
+model event_guests{
+  id                    Int @id @default(autoincrement())
+  guest_email           String
+  guest_phone_number    String
+  event_id              Int
+  confirmed             Boolean @default(false)
+  confirmed_at          DataTime?
+  created_at            DataTime @default(now())
+  updated_at            DataTime @updated_at
+
+  event events @relation(fields: [event_id], references: [id])
+  @@index([event_id])
+
+}
