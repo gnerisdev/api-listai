@@ -10,7 +10,6 @@ import './settings/database.js';
 class Server {
   constructor() {
     this.app = express();
-    this.app.use(express.json());
   }
 
   async start() {

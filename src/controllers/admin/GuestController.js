@@ -5,22 +5,15 @@ class GuestController {
     static async getGuestsEvents(req, res) {
         try {
             const {eventId}= req.params
-            console.log("Rota acessada! eventId:", eventId);
+
 
             if(!eventId || isNaN(parseInt(eventId))){
-                console.log("ID inválido!");
                 return res.status(400).json({
                     success: false,
                     message: "Id inválido",
                     data: []
                 })
             }
-
-            /*const guests = await prisma.event_guests.findMany({
-                where: {event_id: parseInt(eventId) },
-                orderBy: {created_at: "desc"}
-            })
-            */
            const guests = await prisma.event_guests.findMany({
                 where:{event_id:parseInt(eventId)},
                 include:{
@@ -39,7 +32,6 @@ class GuestController {
                 },
                 orderBy: { created_at: "desc" }
            })
-            console.log("Resultado da busca:", guests);
 
             return res.status(200).json({
                 success: true,
