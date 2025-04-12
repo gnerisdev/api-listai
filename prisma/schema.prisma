@@ -53,6 +53,7 @@ model events {
   event_details    event_details[]
   gifts            events_gifts[]     @relation("EventsGifts")
   gift_suggestions gift_suggestions[]
+  event_guests  event_guests[]
 }
 
 model events_gifts {
@@ -154,17 +155,17 @@ model gift_suggestions {
   @@index([event_id])
 }
 
-model event_guests{
-  id                    Int @id @default(autoincrement())
-  guest_email           String
-  guest_phone_number    String
-  event_id              Int
-  confirmed             Boolean @default(false)
-  confirmed_at          DataTime?
-  created_at            DataTime @default(now())
-  updated_at            DataTime @updated_at
+model event_guests {
+  id               Int      @id @default(autoincrement())
+  guest_email      String
+  guest_phone_number String
+  event_id         Int
+  confirmed        Boolean  @default(false)
+  confirmed_at     DateTime?
+  created_at       DateTime @default(now())
+  updated_at       DateTime? @updatedAt
 
   event events @relation(fields: [event_id], references: [id])
-  @@index([event_id])
 
+  @@index([event_id])
 }
