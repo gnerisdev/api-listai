@@ -29,8 +29,6 @@ router.get('/gifts', adminAuthMiddleware, giftsController.getGifts);
 router.post('/gifts', adminAuthMiddleware, giftsController.registerGift);
 router.put('/gifts/:id', adminAuthMiddleware, giftsController.updateGift);
 router.delete('/gifts/:id', adminAuthMiddleware, giftsController.removeGift);
-
-//GuestEvents
 router.get('/event-guests/:eventId', GuestController.getGuestsEvents);
 
 export default router;
