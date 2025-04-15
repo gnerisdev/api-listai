@@ -1,30 +1,32 @@
 import { Router } from 'express';
-import { GiftsController } from '../controllers/admin/GiftsController.js';
+import adminAuthMiddleware from '../middleware/adminAuthMiddleware.js';
+import GiftsController from '../controllers/admin/GiftsController.js';
 import AuthController from '../controllers/admin/AuthController.js';
 import ManageUsersController from '../controllers/admin/ManageUsersController.js';
 import EventsController from '../controllers/admin/EventsController.js';
+import AdminController from '../controllers/admin/AdminController.js';
 
 const router = Router();
 
-const giftsController = new GiftsController(); 
-const manageUsersController = new ManageUsersController(); 
-const eventsController = new EventsController(); 
-const authController = new AuthController(); 
+const giftsController = new GiftsController();
+const manageUsersController = new ManageUsersController();
+const eventsController = new EventsController();
+const authController = new AuthController();
+const adminController = new AdminController();
 
-// Gifts
-router.get('/gifts', giftsController.getGifts);
-router.post('/gifts', giftsController.registerGift);
-router.put('/gifts/:id', giftsController.updateGift);
-router.delete('/gifts/:id', giftsController.removeGift)
-
-//Login
+// Public Routes
 router.post('/login', authController.login);
-// Users
-router.get('/users', manageUsersController.listUsers);
-router.get('/users/:user_id', manageUsersController.getUser);
-router.get('/user-events/:user_id', manageUsersController.getUserEvents);
-// Events
-router.get('/events', eventsController.getEvents);
-router.get('/event-details/:event_id', eventsController.getDetails);
+
+// Protected Routes
+router.get('/me', adminAuthMiddleware, adminController.fetchAdmin);
+router.get('/users', adminAuthMiddleware, manageUsersController.listUsers);
+router.get('/users/:user_id', adminAuthMiddleware, manageUsersController.getUser);
+router.get('/user-events/:user_id', adminAuthMiddleware, manageUsersController.getUserEvents);
+router.get('/events', adminAuthMiddleware, eventsController.getEvents);
+router.get('/event-details/:event_id', adminAuthMiddleware, eventsController.getDetails);
+router.get('/gifts', adminAuthMiddleware, giftsController.getGifts);
+router.post('/gifts', adminAuthMiddleware, giftsController.registerGift);
+router.put('/gifts/:id', adminAuthMiddleware, giftsController.updateGift);
+router.delete('/gifts/:id', adminAuthMiddleware, giftsController.removeGift);
 
 export default router;

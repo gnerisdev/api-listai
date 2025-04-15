@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { LogUtils } from '../../utils/LogUtils.js'
 const prisma = new PrismaClient();
 
-export class GiftsController {
+class GiftsController {
   async getGifts(req, res) {
     try {
       const gifts = await prisma.gifts.findMany();
@@ -160,3 +160,5 @@ export class GiftsController {
     }
   }
 }
+
+export default GiftsController;

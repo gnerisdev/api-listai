@@ -7,7 +7,32 @@ const prisma = new PrismaClient();
 class ManageUsersController {
   async listUsers(req, res) {
     try {
-      const users = await prisma.users.findMany();
+      const { name, email, phoneNumber, page = 1, limit = 10 } = req.query;
+      console.log(req.query)
+  
+      const skip = (Number(page) - 1) * Number(limit);
+  
+      const where = search
+        ? {
+            OR: [
+              { first_name: { contains: search, mode: 'insensitive' } },
+              { last_name: { contains: search, mode: 'insensitive' } },
+              { email: { contains: search, mode: 'insensitive' } },
+              { phone_number: { contains: search, mode: 'insensitive' } },
+            ],
+          }
+        : {};
+  
+      const [users, total] = await Promise.all([
+        prisma.users.findMany({
+          where,
+          skip,
+          take: Number(limit),
+          orderBy: { created_at: 'desc' },
+        }),
+        prisma.users.count({ where }),
+      ]);
+  
       const usersData = users.map(user => ({
         id: user.id,
         firstName: user.first_name,
@@ -16,15 +41,23 @@ class ManageUsersController {
         phoneNumber: user.phone_number,
         active: user.active,
         createdAt: user.created_at,
-        updatedAt: user.updated_at
+        updatedAt: user.updated_at,
       }));
-
-      return res.status(200).json({ success: true, users: usersData });
+  
+      return res.status(200).json({
+        success: true,
+        users: usersData,
+        total,
+        page: Number(page),
+        totalPages: Math.ceil(total / Number(limit)),
+      });
     } catch (error) {
       LogUtils.errorLogger(error);
-      return res.status(500).json({ success: false, message: 'Erro ao listar usuários.' });
+      return res
+        .status(500)
+        .json({ success: false, message: 'Erro ao listar usuários.' });
     }
-  }
+  }  
 
   async getUser(req, res) {
     try {
