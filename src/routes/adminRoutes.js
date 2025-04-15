@@ -2,6 +2,7 @@ import { Router } from 'express';
 import adminAuthMiddleware from '../middleware/adminAuthMiddleware.js';
 import GiftsController from '../controllers/admin/GiftsController.js';
 import AuthController from '../controllers/admin/AuthController.js';
+import GuestController from '../controllers/admin/GuestController.js';
 import ManageUsersController from '../controllers/admin/ManageUsersController.js';
 import EventsController from '../controllers/admin/EventsController.js';
 import AdminController from '../controllers/admin/AdminController.js';
@@ -28,5 +29,8 @@ router.get('/gifts', adminAuthMiddleware, giftsController.getGifts);
 router.post('/gifts', adminAuthMiddleware, giftsController.registerGift);
 router.put('/gifts/:id', adminAuthMiddleware, giftsController.updateGift);
 router.delete('/gifts/:id', adminAuthMiddleware, giftsController.removeGift);
+
+//GuestEvents
+router.get('/event-guests/:eventId', GuestController.getGuestsEvents);
 
 export default router;
