@@ -1,26 +1,32 @@
 import mercadopago from "mercadopago";
+import { MP_ACCESS_TOKEN } from '../environments/index.js';
 
-export class NotificationService {
-  #accessToken = 'TEST-1944498221096339-010600-f3917d8d9a0242baa5b2236a9d4ac87e-225270724';
-
+export class MercadoPagoService {
   constructor() {
-    this.mp = mercadopago.configure({ access_token: accessToken });
+    mercadopago.configure({ access_token: MP_ACCESS_TOKEN });
   }
 
-  async getPreferenceId(products) {
+  async getPreference(service, back_urls, external_reference) {
     try {
-      const preference = {
-        items: products.map((item) => ({
-          title: item.name, 
-          unit_price: item.priceTotal, 
-          quantity: item.quantity
-        }))
+      const preference = { 
+        items: [service], 
+        back_urls, 
+        auto_return: 'approved',
+        external_reference 
       };
-      const response = await this.mp.preferences.create(preference);
-
-      return response.body.id;
+      const response = await mercadopago.preferences.create(preference);
+      return response.body;
     } catch (error) {
-      console.error('erroo ', error);
+      throw error;
+    }
+  }
+
+  async getPaymentById(payment_id) {
+    try {
+      const response = await mercadopago.payment.findById(payment_id);
+      return response.body;
+    } catch (error) {
+      throw error;
     }
   }
 }

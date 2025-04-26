@@ -8,9 +8,7 @@ class EventController {
   async getEvent(req, res) {
     try {
       const userId = parseInt(req.headers.user_id); 
-      const eventId = parseInt(req.params.event_id); 
-      console.log(req.params, '-------')
-  
+      const eventId = parseInt(req.params.event_id);   
       const response = await prisma.users_events.findFirst({
         where: { user_id: userId, event_id: eventId, },
         include: { event: true, },

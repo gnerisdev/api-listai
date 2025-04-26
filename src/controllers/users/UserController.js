@@ -1,8 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { LogUtils } from '../../utils/LogUtils.js';
+import { FormatUtils } from '../../utils/FormatUtils.js';
 
 const prisma = new PrismaClient();
-
 class UserController {
   async fetchUserProfile(req, res) {  
     try {
@@ -44,21 +44,12 @@ class UserController {
         return res.status(404).json({ success: false, message: 'Evento não encontrado.' });
       }
 
-      const eventData = {
-        id: event.id,
-        title: event.title,
-        subtitle: event.subtitle,
-        titleDescription: event.title_description,
-        description: event.description,
-        color: event.color
-      };
-
       delete user.events;
 
       return res.status(200).json({
         success: true,
         message: 'Perfil carregado com sucesso!',
-        event: eventData,
+        event: FormatUtils.toCamelCase(event),
         user
       });
     } catch (error) {

@@ -32,37 +32,46 @@ model users {
 
   events           users_events[]     @relation("UserEvents")
   gift_suggestions gift_suggestions[]
+  user_transitions user_transitions[]
 }
 
 model events {
-  id                  Int       @id @default(autoincrement())
-  title               String
-  subtitle            String
-  slug                String    @unique
-  description         String?   @db.VarChar(1000)
-  title_description   String?
-  color               String    @default("#432070")
-  active              Boolean   @default(true)
-  event_categories_id Int
-  created_at          DateTime  @default(now())
-  updated_at          DateTime? @updatedAt
+  id                       Int       @id @default(autoincrement())
+  title                    String
+  subtitle                 String
+  slug                     String    @unique
+  description              String?   @db.VarChar(1000)
+  title_description        String?
+  color                    String    @default("#432070")
+  active                   Boolean   @default(true)
+  event_categories_id      Int
+  show_gift_list           Boolean   @default(true)
+  show_guest_messages      Boolean   @default(true)
+  show_event_info          Boolean   @default(true)
+  allow_guest_confirmation Boolean   @default(true)
+  created_at               DateTime  @default(now())
+  updated_at               DateTime? @updatedAt
 
   users            users_events[]     @relation("UserEvents")
   event_details    event_details[]
-  gifts            events_gifts[]     @relation("EventsGifts")
+  event_gifts      event_gifts[]
   gift_suggestions gift_suggestions[]
-  event_guests  event_guests[]
+  event_guests     event_guests[]
+  event_gallery    event_gallery[]
+  event_services   event_services[]
+  user_transitions user_transitions[]
+  event_messages   event_messages[]
 }
 
-model events_gifts {
+model event_gifts {
   event_id   Int
   gift_id    Int
   created_at DateTime  @default(now())
   updated_at DateTime? @updatedAt
-  deleted_at  DateTime?
+  deleted_at DateTime?
 
-  event events @relation("EventsGifts", fields: [event_id], references: [id])
-  gift  gifts  @relation("EventsGifts", fields: [gift_id], references: [id])
+  event events @relation(fields: [event_id], references: [id])
+  gift  gifts  @relation(fields: [gift_id], references: [id])
 
   @@id([event_id, gift_id])
   @@index([gift_id])
@@ -130,11 +139,13 @@ model gifts {
   description         String
   price               Float
   event_categories_id Int
+  image_url           String?
+  image_cdn           String?
   created_at          DateTime  @default(now())
   updated_at          DateTime? @updatedAt
-  deleted_at           DateTime?
+  deleted_at          DateTime?
 
-  events events_gifts[] @relation("EventsGifts")
+  event_gifts event_gifts[]
 }
 
 model gift_suggestions {
@@ -142,7 +153,7 @@ model gift_suggestions {
   user_id     Int
   event_id    Int
   title       String
-  description String?    @db.VarChar(500)
+  description String?   @db.VarChar(500)
   created_at  DateTime  @default(now())
   updated_at  DateTime? @updatedAt
 
@@ -154,16 +165,102 @@ model gift_suggestions {
 }
 
 model event_guests {
-  id               Int      @id @default(autoincrement())
-  guest_email      String
-  guest_phone_number String
-  event_id         Int
-  confirmed        Boolean  @default(false)
-  confirmed_at     DateTime?
-  created_at       DateTime @default(now())
-  updated_at       DateTime? @updatedAt
+  id           Int       @id @default(autoincrement())
+  first_name   String
+  last_name    String
+  email        String
+  phone_number String
+  event_id     Int
+  confirmed    Boolean   @default(false)
+  created_at   DateTime  @default(now())
+
+  event events @relation(fields: [event_id], references: [id])
+
+  @@unique([event_id, email])
+  @@index([event_id])
+}
+
+model event_messages {
+  id         Int      @id @default(autoincrement())
+  event_id   Int
+  first_name String
+  last_name  String
+  email      String
+  message    String
+  created_at DateTime @default(now())
+
+  event events @relation(fields: [event_id], references: [id])
+
+  @@unique([event_id, email])
+}
+
+model event_gallery {
+  id         Int       @id @default(autoincrement())
+  url        String
+  cdn        String
+  type       String
+  event_id   Int
+  created_at DateTime  @default(now())
+  updated_at DateTime? @updatedAt
 
   event events @relation(fields: [event_id], references: [id])
 
   @@index([event_id])
+}
+
+model services {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  type        String
+  quantity    Int
+  price       Float
+  is_default  Boolean  @default(false)
+  active      Boolean
+  created_at  DateTime @default(now())
+
+  event_services   event_services[]
+  user_transitions user_transitions[]
+}
+
+model event_services {
+  id                 Int      @id @default(autoincrement())
+  event_id           Int
+  service_id         Int
+  user_transition_id Int
+  quantity           Int
+  total_price        Float
+  created_at         DateTime @default(now())
+
+  event            events           @relation(fields: [event_id], references: [id])
+  services         services         @relation(fields: [service_id], references: [id])
+  user_transitions user_transitions @relation(fields: [user_transition_id], references: [id])
+
+  @@index([event_id])
+}
+
+model user_transitions {
+  id          Int              @id @default(autoincrement())
+  event_id    Int
+  service_id  Int
+  user_id     Int
+  total_price Float
+  created_at  DateTime         @default(now())
+  reference   String
+  status      TransitionStatus @default(PENDING)
+
+  user           users            @relation(fields: [user_id], references: [id])
+  event          events           @relation(fields: [event_id], references: [id])
+  service        services         @relation(fields: [service_id], references: [id])
+  event_services event_services[]
+
+  @@index([event_id])
+  @@index([user_id])
+  @@index([service_id])
+}
+
+enum TransitionStatus {
+  APPROVED
+  PENDING
+  RECUSED
 }

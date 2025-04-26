@@ -4,8 +4,6 @@ import usersRoutes from './routes/usersRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import guestsRoutes from './routes/guestsRoutes.js';
 import { PORT } from './environments/index.js';
-import './settings/cloudinary.js';
-import './settings/database.js';
 
 class Server {
   constructor() {

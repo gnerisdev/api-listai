@@ -21,7 +21,7 @@ class GiftsController {
       }
 
       // Gets gifts by event
-      const events = await prisma.events_gifts.findMany({
+      const events = await prisma.event_gifts.findMany({
         where: { event_id: eventId, deleted_at: null },
         include: { gift: true },
       });
@@ -112,7 +112,7 @@ class GiftsController {
         });
       }
 
-      const activeGiftsCount = await prisma.events_gifts.count({
+      const activeGiftsCount = await prisma.event_gifts.count({
         where: { event_id: eventId, deleted_at: null }
       });
       if (activeGiftsCount <= 4) {
@@ -122,12 +122,12 @@ class GiftsController {
         });
       }
 
-      await prisma.events_gifts.update({
+      await prisma.event_gifts.update({
         where: { event_id_gift_id: { event_id: eventId, gift_id: giftId } },
         data: { deleted_at: new Date() }
       });
 
-      const eventGifts = await prisma.events_gifts.findMany({
+      const eventGifts = await prisma.event_gifts.findMany({
         where: { event_id: eventId, deleted_at: null },
         include: { gift: true },
       });

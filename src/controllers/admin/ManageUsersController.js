@@ -1,27 +1,28 @@
 import { PrismaClient } from '@prisma/client';
 import { LogUtils } from '../../utils/LogUtils.js';
-import { ValidationUtils } from '../../utils/ValidationUtils.js';
+import { FormatUtils } from '../../utils/FormatUtils.js';
 
 const prisma = new PrismaClient();
 
 class ManageUsersController {
   async listUsers(req, res) {
     try {
-      const { name, email, phoneNumber, page = 1, limit = 10 } = req.query;
-      console.log(req.query)
-  
+      const { name, email, phoneNumber, page = 1, limit = 2 } = req.query;
+      console.log(page, limit, '----------')  
       const skip = (Number(page) - 1) * Number(limit);
   
-      const where = search
-        ? {
-            OR: [
-              { first_name: { contains: search, mode: 'insensitive' } },
-              { last_name: { contains: search, mode: 'insensitive' } },
-              { email: { contains: search, mode: 'insensitive' } },
-              { phone_number: { contains: search, mode: 'insensitive' } },
-            ],
-          }
-        : {};
+      // Filtros básicos
+      const filters = [];
+  
+      if (email) filters.push({ email: { contains: email } });  
+      if (phoneNumber) filters.push({ phone_number: { contains: phoneNumber } });
+      if (name) {
+        filters.push({
+          OR: [{ first_name: { contains: name } }, { last_name: { contains: name } }],
+        });
+      }
+  
+      const where = filters.length > 0 ? { AND: filters } : {};
   
       const [users, total] = await Promise.all([
         prisma.users.findMany({
@@ -33,32 +34,22 @@ class ManageUsersController {
         prisma.users.count({ where }),
       ]);
   
-      const usersData = users.map(user => ({
-        id: user.id,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        email: user.email,
-        phoneNumber: user.phone_number,
-        active: user.active,
-        createdAt: user.created_at,
-        updatedAt: user.updated_at,
-      }));
-  
       return res.status(200).json({
         success: true,
-        users: usersData,
+        users: FormatUtils.toCamelCase(users),
         total,
         page: Number(page),
         totalPages: Math.ceil(total / Number(limit)),
       });
+  
     } catch (error) {
-      LogUtils.errorLogger(error);
+      console.error(error);
       return res
         .status(500)
         .json({ success: false, message: 'Erro ao listar usuários.' });
     }
-  }  
-
+  }
+  
   async getUser(req, res) {
     try {
       const userId = parseInt(req.params.user_id);
@@ -115,44 +106,20 @@ class ManageUsersController {
   async getUserEvents(req, res) {
     try {
       const userId = parseInt(req.params.user_id);
-  
       const user = await prisma.users.findUnique({
         where: { id: userId },
-        include: {
-          events: {
-            select: {
-              event: {
-                select: {
-                  id: true,
-                  title: true,
-                  subtitle: true,
-                  date: true,
-                  location: true,
-                  description: true,
-                  color: true,
-                },
-              },
-            },
-          },
-        },
+        include: { events: { select: { event: true } } }
       });
   
       if (!user) {
         return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
       }
-  
-      const events = user.events.map((userEvent) => ({
-        id: userEvent.event.id,
-        title: userEvent.event.title,
-        subtitle: userEvent.event.subtitle,
-        date: userEvent.event.date,
-        location: userEvent.event.location,
-        description: userEvent.event.description,
-        color: userEvent.event.color,
-      }));
+
+      const events = user.events.map((userEvent) => FormatUtils.toCamelCase(userEvent.event));
   
       return res.status(200).json({ success: true, events });
     } catch (error) {
+      console.log(error)
       LogUtils.errorLogger(error);
       return res.status(500).json({ success: false, message: 'Erro ao buscar eventos do usuário.' });
     }

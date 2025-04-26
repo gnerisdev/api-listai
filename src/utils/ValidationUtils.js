@@ -29,8 +29,9 @@ export class ValidationUtils {
   }
 
   static phoneNumber(value) {
+    const onlyNumbers = value.replace(/\D/g, '');
     const validationPhoneNumber = /^\d{10,15}$/;
-    return validationPhoneNumber.test(value) ? true : 'Número de celeluar inválido.';
+    return validationPhoneNumber.test(onlyNumbers) ? true : 'Número de celular inválido.';
   }
   
   static password(value) {

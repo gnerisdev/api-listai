@@ -8,45 +8,52 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 class AuthController {
-  async register(req, res) {  
-    const data = { ...req.body };
-    const messages = [];
-  
-    console.log(data);
-  
-    // Validation
-    if (!data.title) messages.push('Título do evento é obrigatório.');
-    if (!data.slug) messages.push('Url do evento é obrigatório.');
-    if (!data.event) messages.push('Evento é obrigatório.');
-  
-    const validationFirstName = ValidationUtils.firstName(data.firstName);
-    const validationLastName = ValidationUtils.lastName(data.lastName);
-    const validationEmail = ValidationUtils.email(data.email);
-    const validationPhoneNumber = ValidationUtils.phoneNumber(data.phoneNumber);
-    const validationPassword = ValidationUtils.password(data.password);
-    data.phoneNumber = data.phoneNumber.replace(/\D/g, ''); 
-
-    if (validationFirstName !== true) messages.push(validationFirstName);
-    if (validationLastName !== true) messages.push(validationLastName);
-    if (validationEmail !== true) messages.push(validationEmail);
-    if (validationPhoneNumber !== true) messages.push(validationPhoneNumber);
-    if (validationPassword !== true) messages.push(validationPassword);
-  
-    if (messages.length) {
-      return res.status(400).json({
-        success: false, 
-        message: `${messages.map(error => `• ${error}`).join('\n <br>')}`
-      });
-    }
-  
+  async register(req, res) {
     try {
+      const data = { ...req.body };
+      const messages = [];
+
+      // Validation
+      if (!data.title) messages.push('Título do evento é obrigatório.');
+      if (!data.slug) messages.push('Url do evento é obrigatório.');
+      if (!data.event) messages.push('Evento é obrigatório.');
+
+      const validationFirstName = ValidationUtils.firstName(data.firstName);
+      const validationLastName = ValidationUtils.lastName(data.lastName);
+      const validationEmail = ValidationUtils.email(data.email);
+      const validationPhoneNumber = ValidationUtils.phoneNumber(data.phoneNumber);
+      const validationPassword = ValidationUtils.password(data.password);
+      data.phoneNumber = data.phoneNumber.replace(/\D/g, '');
+
+      if (validationFirstName !== true) messages.push(validationFirstName);
+      if (validationLastName !== true) messages.push(validationLastName);
+      if (validationEmail !== true) messages.push(validationEmail);
+      if (validationPhoneNumber !== true) messages.push(validationPhoneNumber);
+      if (validationPassword !== true) messages.push(validationPassword);
+
+      if (messages.length) {
+        return res.status(400).json({
+          success: false,
+          message: `${messages.map(error => `• ${error}`).join('\n <br>')}`
+        });
+      }
+
       const result = await prisma.$transaction(async (prisma) => {
-        // Verify email
-        const email = data.email;
-        const findEmail = await prisma.users.findUnique({ where: { email: email } });
-  
-        if (findEmail) throw new Error('Email já cadastrado');
-  
+        // Verify email and slug
+        const { email, slug } = data;
+        const [existingEmail, existingSlug] = await Promise.all([
+          prisma.users.findUnique({ where: { email } }),
+          prisma.events.findUnique({ where: { slug } }),
+        ]);
+
+        if (existingEmail) {
+          return res.status(400).json({ success: false, message: 'E-mail já cadastrado.' });
+        }
+
+        if (existingSlug) {
+          return res.status(400).json({ success: false, message: 'Url já está em uso.' });
+        }
+
         // Create user
         const user = await prisma.users.create({
           data: {
@@ -58,7 +65,7 @@ class AuthController {
             password: bcrypt.hashSync(data.password, 12),
           },
         });
-  
+
         // Create event
         const event = await prisma.events.create({
           data: {
@@ -68,34 +75,38 @@ class AuthController {
             event_categories_id: Number(data.event)
           },
         });
-  
+
         // Link the user and event
         await prisma.users_events.create({ data: { user_id: user.id, event_id: event.id } });
-  
+
         // Associating multiple gifts from giftList
         if (Array.isArray(data.giftList) && data.giftList.length > 0) {
           const giftAssociations = data.giftList.map(giftId => ({
-            event_id: event.id,
-            gift_id: giftId,
+            event_id: event.id, gift_id: giftId,
           }));
-  
+
           // Create records in events_gifts for each gift
-          await prisma.events_gifts.createMany({ data: giftAssociations });
+          await prisma.event_gifts.createMany({ data: giftAssociations });
         }
 
-        return user;
-      });
+        const token = jwt.sign(
+          { id: user.id, email: user.email },
+          TOKEN_KEY,
+          { expiresIn: '1d' }
+        );
   
-      return res.status(200).json({ success: true, message: 'Cadastro feito com sucesso!' });
-      
-    } catch (error) {
-      console.log(error)
-      return res.status(400).json({
-        success: false,
-        message: `Erro ao fazer cadastro.`
+        return res.status(200).json({
+          success: true,
+          message: 'Cadastro feito com sucesso!',
+          token,
+          id: user.id,
+        });      
       });
+    } catch (error) {
+      console.log(error);
+      return res.status(400).json({ success: false, message: `Erro ao fazer cadastro.` });
     }
-  }  
+  }
 
   async login(req, res) {
     try {
@@ -113,7 +124,7 @@ class AuthController {
       }
 
       const token = jwt.sign(
-        { id: user.id, email: user.email }, 
+        { id: user.id, email: user.email },
         TOKEN_KEY,
         { expiresIn: '1d' }
       );
@@ -141,7 +152,7 @@ class AuthController {
 
       return res.status(200).json(eventTypes);
     } catch (error) {
-      console.log(error)
+      console.log(error);
       LogUtils.errorLogger(error);
       res.status(400).json({
         success: false,
@@ -169,14 +180,14 @@ class AuthController {
   async fetchGiftsSlug(req, res) {
     try {
       const { event_categories_id, slug } = req.query;
-  
+
       // Verify slug
       const findSlug = await prisma.events.findUnique({ where: { slug: slug } });
-  
+
       if (findSlug) {
-        return res.status(400).json({ 
-          slug_available: false, 
-          message: 'O link está em uso, por favor, crie outro' 
+        return res.status(400).json({
+          slug_available: false,
+          message: 'O link está em uso, por favor, crie outro'
         });
       }
 
@@ -184,7 +195,7 @@ class AuthController {
       const gifts = await prisma.gifts.findMany({
         where: { event_categories_id: Number(event_categories_id) },
       });
-        
+
       return res.status(200).json({ gifts, slug_available: true });
     } catch (error) {
       LogUtils.errorLogger(error);
@@ -193,7 +204,7 @@ class AuthController {
         message: 'Erro ao buscar dados.',
       });
     }
-  }  
+  }
 }
 
 export default AuthController;

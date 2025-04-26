@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { ValidationUtils } from '../../utils/ValidationUtils.js';
+import { FormatUtils } from '../../utils/FormatUtils.js';
 
 const prisma = new PrismaClient();
 
@@ -26,25 +27,11 @@ class EventDetailsController {
       }
 
       const eventDetails = await prisma.event_details.findFirst({ where: { event_id: eventId } });
-      const eventDetailsData = {
-        date: new Date(eventDetails.event_date).toISOString().split('T')[0], 
-        startTime: new Date(eventDetails.start_time).toTimeString().slice(0, 5),
-        endTime: new Date(eventDetails.end_time).toTimeString().slice(0, 5),
-        eventType: eventDetails.event_type,
-        eventLocation: eventDetails.event_location,
-        postalCode: eventDetails.postal_code,
-        fullAddress: eventDetails.full_address,
-        latitude: eventDetails.latitude,
-        longitude: eventDetails.longitude,
-        transmission: eventDetails.transmission,
-        transmissionLink: eventDetails.transmission_link,
-        transmissionPassword: eventDetails.transmission_password
-      };
 
       return res.status(200).json({
         success: true,
         message: 'Detalhes do evento recuperados com sucesso!',
-        eventDetails: eventDetailsData,
+        eventDetails: FormatUtils.toCamelCase(eventDetails),
       });
     } catch (error) {
       LogUtils.errorLogger(error);
@@ -161,7 +148,6 @@ class EventDetailsController {
         });
       }
     } catch (error) {
-      console.log(error);
       LogUtils.errorLogger(error);
       return res.status(500).json({
         success: false,
@@ -169,8 +155,6 @@ class EventDetailsController {
       });
     }
   }
-
-
 }
 
 export default EventDetailsController;
