@@ -56,4 +56,14 @@ export class CloudinaryService {
     const weekOfMonth = Math.ceil(today.getDate() / 7);
     return  '0' + (weekOfMonth - 1) % cloudinaryAccounts.length;
   }  
+
+  static async getPublicId(url) {  
+    const parsedUrl = new URL(url);
+    const pathname = parsedUrl.pathname; 
+    const parts = pathname.split('/');      
+    const publicIdWithExt = parts.slice(2).join('/');
+    const publicId = publicIdWithExt.replace(/\.[^/.]+$/, '');
+  
+    return publicId;
+  }
 }

@@ -10,6 +10,7 @@ import EventSettingsController from '../controllers/users/EventSettingsControlle
 import GalleryController from '../controllers/users/GalleryController.js';
 import ServicesController from '../controllers/users/ServicesController.js';
 import EventGuestsController from '../controllers/users/EventGuestsController.js';
+import EventMessagesController from '../controllers/users/EventMessagesController.js';
 
 const router = Router();
 const upload = multer({ dest: 'tmp/' });
@@ -22,6 +23,7 @@ const eventSettingsController = new EventSettingsController();
 const galleryController = new GalleryController();
 const servicesController = new ServicesController();
 const eventGuestsController = new EventGuestsController();
+const eventMessagesController = new EventMessagesController();
 
 // Auth
 router.post('/register', authController.register);
@@ -51,5 +53,10 @@ router.get('/event-gallery/:event_id', userAuthMiddleware, galleryController.get
 router.get('/services', userAuthMiddleware, servicesController.getServices);
 router.post('/services/purchase', userAuthMiddleware, servicesController.initiatePayment);
 router.get('/guests/:event_id', userAuthMiddleware, eventGuestsController.getConfirmPresence);
+router.put('/guests/:event_id/:guest_id', userAuthMiddleware, eventGuestsController.saveGuest);
+router.post('/guests/:event_id', userAuthMiddleware, eventGuestsController.saveGuest);
+router.delete('/guests/:event_id/:guest_id', userAuthMiddleware, eventGuestsController.removeGuest);
+router.get('/messages/:event_id', userAuthMiddleware, eventMessagesController.getMessages);
+router.delete('/messages/:event_id/:message_id', userAuthMiddleware, eventMessagesController.removeMessage);
 
 export default router;

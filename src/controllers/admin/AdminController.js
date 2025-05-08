@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { LogUtils } from '../../utils/LogUtils.js';
+import { FormatUtils } from '../../utils/FormatUtils.js';
 
 const prisma = new PrismaClient();
 
@@ -29,7 +30,9 @@ class AdminController {
       }
 
       return res.status(200).json({
-        success: true, message: 'Perfil carregado com sucesso!', admin: admin
+        success: true, 
+        message: 'Perfil carregado com sucesso!', 
+        admin: FormatUtils.toCamelCase(admin)
       });
     } catch (error) {
       LogUtils.errorLogger(error);

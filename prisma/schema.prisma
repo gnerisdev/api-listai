@@ -100,8 +100,13 @@ model event_types {
   name        String
   description String
   active      Boolean   @default(true)
+  image_url   String?
+  image_cdn   String?
   created_at  DateTime  @default(now())
+  delete_at   DateTime?
   updated_at  DateTime? @updatedAt
+
+  event_categories event_categories[]
 }
 
 model event_categories {
@@ -109,8 +114,16 @@ model event_categories {
   name          String
   description   String
   event_type_id Int
+  image_url     String?
+  image_cdn     String?
+  active      Boolean   @default(true)
   created_at    DateTime  @default(now())
+  delete_at     DateTime?
   updated_at    DateTime? @updatedAt
+
+  event_type event_types @relation(fields: [event_type_id], references: [id])
+
+  gifts gifts[]
 }
 
 model event_details {
@@ -141,14 +154,15 @@ model gifts {
   name                String
   description         String
   price               Float
-  event_categories_id Int
   image_url           String?
   image_cdn           String?
+  event_categories_id Int
   created_at          DateTime  @default(now())
   updated_at          DateTime? @updatedAt
   deleted_at          DateTime?
 
-  event_gifts event_gifts[]
+  event_categories event_categories @relation(fields: [event_categories_id], references: [id])
+  event_gifts      event_gifts[]
 }
 
 model gift_suggestions {
@@ -168,14 +182,14 @@ model gift_suggestions {
 }
 
 model event_guests {
-  id           Int       @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   first_name   String
   last_name    String
   email        String
   phone_number String
   event_id     Int
-  confirmed    Boolean   @default(false)
-  created_at   DateTime  @default(now())
+  confirmed    Boolean  @default(false)
+  created_at   DateTime @default(now())
 
   event events @relation(fields: [event_id], references: [id])
 

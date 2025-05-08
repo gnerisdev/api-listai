@@ -8,7 +8,6 @@ class ManageUsersController {
   async listUsers(req, res) {
     try {
       const { name, email, phoneNumber, page = 1, limit = 2 } = req.query;
-      console.log(page, limit, '----------')  
       const skip = (Number(page) - 1) * Number(limit);
   
       // Filtros básicos

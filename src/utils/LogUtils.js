@@ -14,8 +14,8 @@ export class LogUtils {
   }
 
   static errorLogger(error) {
-    const errorMessage = error.message;
-    const errorLocation = error.stack.split('\n')[1].trim();
+    const errorMessage = error?.message;
+    const errorLocation = error?.stack?.split('\n')[1]?.trim();
     const logMessage = `${errorMessage} (${errorLocation})`;
 
     LogUtils.logger('error.log', 'error')
