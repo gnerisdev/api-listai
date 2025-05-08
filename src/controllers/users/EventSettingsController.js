@@ -54,7 +54,7 @@ class EventSettingsController {
           }
         });
       }
-      // Verify user permission event
+    
       const event = await prisma.users_events.findFirst({
         where: { 
           user_id: userId, 
