@@ -33,6 +33,7 @@ model users {
   events           users_events[]     @relation("UserEvents")
   gift_suggestions gift_suggestions[]
   user_transitions user_transitions[]
+  event_settings   event_settings[]
 }
 
 model events {
@@ -62,6 +63,7 @@ model events {
   user_transitions  user_transitions[]
   event_messages    event_messages[]
   guest_transitions guest_transitions[]
+  event_settings    event_settings[]
 }
 
 model event_gifts {
@@ -300,4 +302,23 @@ enum TransitionStatus {
   APPROVED
   PENDING
   RECUSED
+}
+
+model event_settings {
+  id                       Int      @id @default(autoincrement())
+  user_id                  Int
+  event_id                 Int
+  show_gift_list           Boolean  @default(true)
+  show_guest_messages      Boolean  @default(true)
+  show_event_info          Boolean  @default(true)
+  allow_guest_confirmation Boolean  @default(true)
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
+
+  user  users  @relation(fields: [user_id], references: [id])
+  event events @relation(fields: [event_id], references: [id])
+
+  @@unique([user_id, event_id])
+  @@index([user_id])
+  @@index([event_id])
 }
