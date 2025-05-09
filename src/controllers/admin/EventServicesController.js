@@ -4,11 +4,17 @@ import { FormatUtils } from '../../utils/FormatUtils.js';
 import { CloudinaryService } from '../../services/CloudinaryServices.js';
 
 const prisma = new PrismaClient();
-class GiftsController {
-  async getGiftsByCategory(req, res) {
+
+class EventServicesController {
+  async getServices(req, res) {
     try {
-      const giftsRaw = await prisma.event_types.findMany({
-        where: { deleted_at: null },
+      const eventId = parseInt(req.params.event_id);
+
+      const services = await prisma.event_services.findMany({
+        where: { 
+          deleted_at: null, 
+          active: true,
+        },
         orderBy: { created_at: 'desc' },
         include: {
           event_categories: {
@@ -19,13 +25,9 @@ class GiftsController {
         },
       });
 
-      const gifts = giftsRaw.filter((type) =>
-        type.event_categories.some((category) => category.gifts.length > 0)
-      );
-
       return res.status(200).json({
         success: true,
-        giftsByCategory: FormatUtils.toCamelCase(gifts)
+        services: FormatUtils.toCamelCase(services)
       });
     } catch (error) {
       LogUtils.errorLogger(error);
@@ -199,4 +201,4 @@ class GiftsController {
   }
 }
 
-export default GiftsController;
+export default EventServicesController;

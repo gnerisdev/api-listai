@@ -44,7 +44,7 @@ model events {
   title_description        String?
   color                    String    @default("#432070")
   active                   Boolean   @default(true)
-  event_categories_id      Int
+  event_category_id        Int
   show_gift_list           Boolean   @default(true)
   show_guest_messages      Boolean   @default(true)
   show_event_info          Boolean   @default(true)
@@ -52,15 +52,16 @@ model events {
   created_at               DateTime  @default(now())
   updated_at               DateTime? @updatedAt
 
-  users            users_events[]     @relation("UserEvents")
-  event_details    event_details[]
-  event_gifts      event_gifts[]
-  gift_suggestions gift_suggestions[]
-  event_guests     event_guests[]
-  event_gallery    event_gallery[]
-  event_services   event_services[]
-  user_transitions user_transitions[]
-  event_messages   event_messages[]
+  users             users_events[]      @relation("UserEvents")
+  event_details     event_details[]
+  event_gifts       event_gifts[]
+  gift_suggestions  gift_suggestions[]
+  event_guests      event_guests[]
+  event_gallery     event_gallery[]
+  event_services    event_services[]
+  user_transitions  user_transitions[]
+  event_messages    event_messages[]
+  guest_transitions guest_transitions[]
 }
 
 model event_gifts {
@@ -100,7 +101,7 @@ model event_types {
   image_url   String?
   image_cdn   String?
   created_at  DateTime  @default(now())
-  delete_at   DateTime?
+  deleted_at  DateTime?
   updated_at  DateTime? @updatedAt
 
   event_categories event_categories[]
@@ -113,9 +114,9 @@ model event_categories {
   event_type_id Int
   image_url     String?
   image_cdn     String?
-  active      Boolean   @default(true)
+  active        Boolean   @default(true)
   created_at    DateTime  @default(now())
-  delete_at     DateTime?
+  deleted_at    DateTime?
   updated_at    DateTime? @updatedAt
 
   event_type event_types @relation(fields: [event_type_id], references: [id])
@@ -127,9 +128,9 @@ model event_details {
   id                    Int       @id @default(autoincrement())
   event_id              Int
   event_date            DateTime
-  start_time            DateTime
-  end_time              DateTime
-  event_type            String
+  start_time            DateTime?
+  end_time              DateTime?
+  event_type            String?
   event_location        String?
   postal_code           String?
   full_address          String?
@@ -147,19 +148,20 @@ model event_details {
 }
 
 model gifts {
-  id                  Int       @id @default(autoincrement())
-  name                String
-  description         String
-  price               Float
-  image_url           String?
-  image_cdn           String?
-  event_categories_id Int
-  created_at          DateTime  @default(now())
-  updated_at          DateTime? @updatedAt
-  deleted_at          DateTime?
+  id                Int       @id @default(autoincrement())
+  name              String
+  description       String
+  price             Float
+  image_url         String?
+  image_cdn         String?
+  event_category_id Int
+  created_at        DateTime  @default(now())
+  updated_at        DateTime? @updatedAt
+  deleted_at        DateTime?
 
-  event_categories event_categories @relation(fields: [event_categories_id], references: [id])
-  event_gifts      event_gifts[]
+  event_categories  event_categories    @relation(fields: [event_category_id], references: [id])
+  event_gifts       event_gifts[]
+  guest_transitions guest_transitions[]
 }
 
 model gift_suggestions {
@@ -188,7 +190,8 @@ model event_guests {
   confirmed    Boolean  @default(false)
   created_at   DateTime @default(now())
 
-  event events @relation(fields: [event_id], references: [id])
+  event             events              @relation(fields: [event_id], references: [id])
+  guest_transitions guest_transitions[]
 
   @@unique([event_id, email])
   @@index([event_id])
@@ -200,7 +203,7 @@ model event_messages {
   first_name String
   last_name  String
   email      String
-  message    String
+  message    String   @db.Text
   created_at DateTime @default(now())
 
   event events @relation(fields: [event_id], references: [id])
@@ -223,15 +226,16 @@ model event_gallery {
 }
 
 model services {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   name        String
   description String
   type        String
   quantity    Int
   price       Float
-  is_default  Boolean  @default(false)
-  active      Boolean
-  created_at  DateTime @default(now())
+  is_default  Boolean   @default(false)
+  active      Boolean   @default(true)
+  created_at  DateTime  @default(now())
+  deleted_at  DateTime?
 
   event_services   event_services[]
   user_transitions user_transitions[]
@@ -271,6 +275,25 @@ model user_transitions {
   @@index([event_id])
   @@index([user_id])
   @@index([service_id])
+}
+
+model guest_transitions {
+  id          Int              @id @default(autoincrement())
+  event_id    Int
+  gift_id     Int
+  guest_id    Int
+  total_price Float
+  created_at  DateTime         @default(now())
+  reference   String
+  status      TransitionStatus @default(PENDING)
+
+  guest event_guests @relation(fields: [guest_id], references: [id])
+  event events       @relation(fields: [event_id], references: [id])
+  gift  gifts        @relation(fields: [gift_id], references: [id])
+
+  @@index([event_id])
+  @@index([guest_id])
+  @@index([gift_id])
 }
 
 enum TransitionStatus {

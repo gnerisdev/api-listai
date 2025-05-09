@@ -34,9 +34,6 @@ router.get('/event-types', authController.getEventTypes);
 router.get('/event-categories', authController.getEventCategories);
 router.get('/fetch-gifts-slug', authController.fetchGiftsSlug);
 
-// Webhook Mercado pago
-router.post('/webhook/mercadopago', servicesController.paymentNotificationMercadoPago);
-
 // Protected Routes
 router.get('/me', userAuthMiddleware, userController.fetchUserProfile);
 router.get('/event/:event_id', userAuthMiddleware, eventController.getEvent);

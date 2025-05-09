@@ -1,3 +1,4 @@
+import moment from 'moment-timezone';
 import { PrismaClient } from '@prisma/client';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { FormatUtils } from '../../utils/FormatUtils.js';
@@ -81,7 +82,7 @@ class EventsController {
     }
   }
 
-  async getDetails(req, res) {
+  async getEvent(req, res) {
     try {
       const eventId = parseInt(req.params.event_id);
       const event = await prisma.events.findUnique({
@@ -111,31 +112,89 @@ class EventsController {
     }
   }
 
-  async updateUser(req, res) {
+  async updatedEvent(req, res) {
     try {
-      const userId = parseInt(req.params.user_id);
-      const { first_name, last_name, email, phone_number, active } = req.body;
+      const eventId = parseInt(req.params.event_id);
+      const {
+        title,
+        subtitle,
+        slug,
+        active,
+        titleDescription,
+        description,
+        color,
+        details,
+      } = req.body;
 
-      const updatedUser = await prisma.users.update({
-        where: { id: userId },
-        data: { first_name, last_name, email, phone_number, active },
-      });
+      // Check slug 
+      const findSlug = await prisma.events.findFirst({ where: { 
+        slug: slug,
+        id: { not: eventId }
+      }});
 
-      return res.status(200).json({ success: true, message: 'Usuário atualizado com sucesso.', user: updatedUser });
+      if (findSlug) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'A URL informada já está cadastrada.' 
+        });
+      }
+
+      // Format Details data
+      const detailsData = {
+        event_date: details?.eventDate
+          ? moment.tz(details.eventDate, 'YYYY-MM-DD', 'America/Sao_Paulo').toDate()
+          : undefined,
+        start_time: details?.startTime
+          ? moment.tz(details.startTime, 'HH:mm', 'America/Sao_Paulo').toDate()
+          : undefined,
+        end_time: details?.endTime
+          ? moment.tz(details.endTime, 'HH:mm', 'America/Sao_Paulo').toDate()
+          : undefined,
+        event_location: details?.eventLocation,
+        event_type: details?.eventType,
+        full_address: details?.fullAddress,
+        latitude: details?.latitude || null,
+        longitude: details?.longitude || null,
+        postal_code: details?.postalCode || null,
+        transmission: details?.transmission,
+        transmission_link: details?.transmissionLink,
+        transmission_password: details?.transmissionPassword,
+        updated_at: moment().tz('America/Sao_Paulo').toDate(),
+      };
+
+      // Save
+      const [eventUpdate, detailsUpdate] = await Promise.all([
+        prisma.events.update({
+          where: { id: eventId },
+          data: {
+            title,
+            subtitle,
+            slug,
+            active: JSON.parse(active),
+            title_description: titleDescription,
+            description,
+            color,
+            updated_at: moment().tz('America/Sao_Paulo').toDate(),
+          },
+        }),
+        prisma.event_details.upsert({
+          where: { id: details.id || -1 },
+          update: detailsData,
+          create: {
+            ...detailsData, 
+            event_id: eventId,
+            created_at: moment().tz('America/Sao_Paulo').toDate() 
+          },
+        })
+      ]);
+
+      return res.status(200).json({ success: true, message: 'Evento atualizado.' });
     } catch (error) {
+      console.log(error);
       LogUtils.errorLogger(error);
-      return res.status(500).json({ success: false, message: 'Erro ao atualizar usuário.' });
-    }
-  }
-
-  async deleteUser(req, res) {
-    try {
-      const userId = parseInt(req.params.user_id);
-      await prisma.users.delete({ where: { id: userId } });
-      return res.status(200).json({ success: true, message: 'Usuário removido com sucesso.' });
-    } catch (error) {
-      LogUtils.errorLogger(error);
-      return res.status(500).json({ success: false, message: 'Erro ao remover usuário.' });
+      return res
+        .status(500)
+        .json({ success: false, message: 'Erro ao atualizar evento.' });
     }
   }
 
@@ -185,6 +244,16 @@ class EventsController {
     }
   }
 
+   async deleteUser(req, res) {
+    try {
+      const userId = parseInt(req.params.user_id);
+      await prisma.users.delete({ where: { id: userId } });
+      return res.status(200).json({ success: true, message: 'Usuário removido com sucesso.' });
+    } catch (error) {
+      LogUtils.errorLogger(error);
+      return res.status(500).json({ success: false, message: 'Erro ao remover usuário.' });
+    }
+  }
 }
 
 export default EventsController;

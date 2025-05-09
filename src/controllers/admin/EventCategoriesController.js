@@ -6,6 +6,22 @@ import { FormatUtils } from '../../utils/FormatUtils.js';
 const prisma = new PrismaClient();
 
 class EventCategoriesController {
+  async getCategories(req, res) {
+    try {
+      const categories = await prisma.event_categories.findMany({
+        where: { deleted_at: null }
+      });
+
+      return res.status(200).json({
+        success: true,
+        eventCategories: FormatUtils.toCamelCase(categories),
+      });
+    } catch (error) {
+      LogUtils.errorLogger(error);
+      return res.status(400).json({ success: false, message: 'Erro ao buscar categorias.' });
+    }
+  }
+
   async createCategory(req, res) {
     try {
       const { name, description, eventTypeId } = req.body;
@@ -84,7 +100,7 @@ class EventCategoriesController {
 
       await prisma.event_categories.update({
         where: { id: eventCategoryId },
-        data: { delete_at: moment().tz('America/Sao_Paulo').toDate() }
+        data: { deleted_at: moment().tz('America/Sao_Paulo').toDate() }
       });
 
       return res.status(200).json({ success: true, message: 'Removido com sucesso.' });

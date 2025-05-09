@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 class EventTypesController {
   async getEventTypes(req, res) {
     try {
-      const eventTypes = await prisma.event_types.findMany({ where: { delete_at: null } });
+      const eventTypes = await prisma.event_types.findMany({ where: { deleted_at: null } });
 
       return res.status(200).json({
         success: true,
@@ -28,10 +28,10 @@ class EventTypesController {
     try {
       const eventTypes = await prisma.event_types.findMany({
         include: { event_categories: {
-          where: { delete_at: null },
+          where: { deleted_at: null },
           orderBy: { created_at: 'desc' } 
         }},
-        where: { delete_at: null },
+        where: { deleted_at: null },
         orderBy: { created_at: 'desc' }
       });
 
@@ -177,7 +177,7 @@ class EventTypesController {
      
       await prisma.event_types.update({
         where: { id: eventTypeId },
-        data: { delete_at: moment().tz('America/Sao_Paulo').toDate() }
+        data: { deleted_at: moment().tz('America/Sao_Paulo').toDate() }
       });
 
       return res.status(200).json({ success: true, message: 'Removido com sucesso.' });
