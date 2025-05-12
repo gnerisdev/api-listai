@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '#prisma';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { ValidationUtils } from '../../utils/ValidationUtils.js';
 import { FormatUtils } from '../../utils/FormatUtils.js';
-
-const prisma = new PrismaClient();
 
 class EventDetailsController {
   async getDetails(req, res) {

@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE `guest_transitions` MODIFY `status` ENUM('APPROVED', 'PENDING', 'RECUSED', 'CANCELLED') NOT NULL DEFAULT 'PENDING';
+
+-- AlterTable
+ALTER TABLE `user_transitions` MODIFY `status` ENUM('APPROVED', 'PENDING', 'RECUSED', 'CANCELLED') NOT NULL DEFAULT 'PENDING';

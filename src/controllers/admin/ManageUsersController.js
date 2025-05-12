@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '#prisma';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { FormatUtils } from '../../utils/FormatUtils.js';
-
-const prisma = new PrismaClient();
 
 class ManageUsersController {
   async listUsers(req, res) {

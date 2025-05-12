@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '#prisma';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { ValidationUtils } from '../../utils/ValidationUtils.js';
-
-const prisma = new PrismaClient();
 
 class EventController {
   async getEvent(req, res) {

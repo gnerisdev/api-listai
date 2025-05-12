@@ -1,11 +1,9 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import prisma from '#prisma';
 import { ValidationUtils } from '../../utils/ValidationUtils.js';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { TOKEN_KEY } from '../../environments/index.js';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
 
 class AuthController {
   async register(req, res) {

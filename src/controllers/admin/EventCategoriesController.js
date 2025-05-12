@@ -1,9 +1,7 @@
 import moment from 'moment-timezone';
-import { PrismaClient } from '@prisma/client';
+import prisma from '#prisma';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { FormatUtils } from '../../utils/FormatUtils.js';
-
-const prisma = new PrismaClient();
 
 class EventCategoriesController {
   async getCategories(req, res) {

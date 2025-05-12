@@ -1,9 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '#prisma';
 import { CloudinaryService } from '../../services/CloudinaryServices.js';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { FormatUtils } from '../../utils/FormatUtils.js';
 
-const prisma = new PrismaClient();
 const cloudinary = CloudinaryService.getInstance();
 
 class GalleryController {

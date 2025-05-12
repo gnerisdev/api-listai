@@ -13,6 +13,7 @@
     "moment-timezone": "^0.5.43",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.14.0",
+    "node-cron": "^4.0.3",
     "nodemailer": "^6.9.7",
     "prisma": "^6.5.0",
     "winston": "^3.13.0"
@@ -33,6 +34,9 @@
     "migration:generate": "npx typeorm migration:generate -d ./ormconfig.js -n",
     "migration:run": "npx typeorm migration:run -d ./ormconfig.js",
     "prisma": "prisma"
+  },
+  "imports": {
+    "#prisma": "./prisma/client.js"
   },
   "keywords": [],
   "author": "",

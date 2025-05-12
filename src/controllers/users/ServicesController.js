@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '#prisma';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { FormatUtils } from '../../utils/FormatUtils.js';
 import { MercadoPagoService } from '../../services/MercadoPagoService.js';
-
-const prisma = new PrismaClient();
 
 class ServicesController {
   async getServices(req, res) {

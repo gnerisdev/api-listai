@@ -1,10 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from '#prisma';
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { TOKEN_KEY } from '../../environments/index.js';
 import { FormatUtils } from "../../utils/FormatUtils.js";
-
-const prisma = new PrismaClient();
 
 class AuthController {
   async login(req, res) {

@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '#prisma';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { MercadoPagoService } from '../../services/MercadoPagoService.js';
-
-const prisma = new PrismaClient();
 
 class MercadoPagoController {
   async paymentNotification(req, res) {

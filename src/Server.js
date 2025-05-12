@@ -4,6 +4,7 @@ import usersRoutes from './routes/usersRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import guestsRoutes from './routes/guestsRoutes.js';
 import webhooksRoutes from './routes/webhooksRoutes.js';
+import { startAllJobs } from './jobs/index.js';
 import { PORT } from './environments/index.js';
 
 class Server {
@@ -16,6 +17,8 @@ class Server {
       this.config();
       this.route();
 
+      startAllJobs();
+      
       this.app.listen(PORT, () => console.log(`Serve on: ${PORT}`));
     } catch (error) {
       console.error('Erro server:', error);
