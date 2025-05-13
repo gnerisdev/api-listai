@@ -79,5 +79,5 @@ router.delete('/messages/:event_id/:message_id', userAuthMiddleware, eventMessag
 // Received Gifts Routes
 router.get('/events/:event_id/received-gifts', userAuthMiddleware, giftsReceivedController.getReceived);
 router.get('/events/:event_id/transactions', userAuthMiddleware, giftsReceivedController.getTransactions);
-
+router.get('/events/:event_id/payout-requests', userAuthMiddleware, giftsReceivedController.createPayoutRequest);
 export default router;

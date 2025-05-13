@@ -45,7 +45,7 @@ class GiftsController {
       const eventId = Number(req.params.event_id);
       const { title, description } = req.body;
 
-      if (!title || title.trim() === "") {
+      if (!title || title.trim() === '') {
         return res.status(400).json({
           success: false,
           message: 'Nome do presente é obrigatório.'

@@ -163,6 +163,7 @@ model gifts {
   created_at        DateTime  @default(now())
   updated_at        DateTime? @updatedAt
   deleted_at        DateTime?
+  active            Boolean   @default(true)
 
   event_categories             event_categories               @relation(fields: [event_category_id], references: [id])
   event_gifts                  event_gifts[]

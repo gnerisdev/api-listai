@@ -1,5 +1,5 @@
-import jwt from "jsonwebtoken";
-import { TOKEN_KEY } from "../environments/index.js";
+import jwt from 'jsonwebtoken';
+import { TOKEN_KEY } from '../environments/index.js';
 
 const adminAuthMiddleware = (req, res, next) => {
   const authorizationHeader = req.headers['authorization'];

@@ -29,6 +29,12 @@ export class MathUtils {
   }
 
   static sum(values) {
+    if (!values || values.length === 0) return new Decimal(0);
     return values.reduce((acc, val) => acc.plus(new Decimal(val)), new Decimal(0));
+  }
+
+  static subtract(values) {
+    if (!values || values.length === 0) return new Decimal(0);
+    return values.slice(1).reduce((acc, val) => acc.minus(new Decimal(val)), new Decimal(values[0]));
   }
 }

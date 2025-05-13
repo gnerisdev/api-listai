@@ -9,7 +9,7 @@ export class EmailService {
   getTransporter = () => {
     return nodemailer.createTransport({
       host: 'smtp.zoho.com',
-      service: "Zoho",
+      service: 'Zoho',
       port: 465,
       secure: false, 
       auth: { user: this.#userEmail, pass: this.#passEmail },
@@ -31,7 +31,7 @@ export class EmailService {
       if (error) {
         console.error(error);
       } else {
-        console.log("E-mail enviado com sucesso: " + info.response);
+        console.log('E-mail enviado com sucesso: ' + info.response);
       }
     });
   }
@@ -65,7 +65,7 @@ export class EmailService {
       if (error) {
         console.error(error);
       } else {
-        console.log("E-mail enviado com sucesso: " + info.response);
+        console.log('E-mail enviado com sucesso: ' + info.response);
       }
     });
   }

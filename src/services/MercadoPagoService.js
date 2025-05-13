@@ -1,4 +1,4 @@
-import mercadopago from "mercadopago";
+import mercadopago from 'mercadopago';
 import { MP_ACCESS_TOKEN } from '../environments/index.js';
 
 export class MercadoPagoService {

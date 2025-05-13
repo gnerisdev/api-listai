@@ -6,11 +6,7 @@ class GuestController {
       const { eventId } = req.params;
 
       if (!eventId || isNaN(parseInt(eventId))) {
-        return res.status(400).json({
-          success: false,
-          message: "Id inválido",
-          data: []
-        });
+        return res.status(400).json({ success: false, message: 'Id inválido', data: [] });
       }
 
       const guests = await prisma.event_guests.findMany({
@@ -29,12 +25,12 @@ class GuestController {
             }
           }
         },
-        orderBy: { created_at: "desc" }
+        orderBy: { created_at: 'desc' }
       });
 
       return res.status(200).json({
         success: true,
-        message: "Convidados encontado com sucesso!",
+        message: 'Convidados encontado com sucesso!',
         data: guests
       });
 

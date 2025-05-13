@@ -64,7 +64,7 @@ router.get('/gifts', adminAuthMiddleware, giftsController.getGifts);
 router.get('/gifts/categories', adminAuthMiddleware, giftsController.getGiftsByCategory);
 router.get('/gifts/:gift_id', adminAuthMiddleware, giftsController.getGift);
 router.post('/gifts', adminAuthMiddleware, upload.single('image'), giftsController.create);
-router.put('/gifts/:id', adminAuthMiddleware, giftsController.updateGift);
+router.put('/gifts/:id', adminAuthMiddleware,  upload.single('image'), giftsController.updateGift);
 router.delete('/gifts/:id', adminAuthMiddleware, giftsController.removeGift);
 // Services
 router.get('/services', adminAuthMiddleware, servicesController.getServices);

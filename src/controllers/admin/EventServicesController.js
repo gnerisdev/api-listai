@@ -146,20 +146,14 @@ class EventServicesController {
       });
 
       if (!giftExists) {
-        return res.status(404).json({
-          success: false,
-          message: "Presente não encontrado"
-        });
+        return res.status(404).json({ success: false, message: 'Presente não encontrado' });
       }
       const categoryExists = await prisma.event_categories.findUnique({
         where: { id: event_categories_id }
       });
 
       if (!categoryExists) {
-        return res.status(404).json({
-          success: false,
-          message: 'Categoria não encontrada'
-        });
+        return res.status(404).json({ success: false, message: 'Categoria não encontrada' });
       }
       // Atualiza o presente no banco de dados
       const updatedGift = await prisma.gifts.update({
@@ -184,17 +178,11 @@ class EventServicesController {
 
       await prisma.gifts.delete({ where: { id: Number(id) } });
 
-      return res.status(200).json({
-        sucesso: true,
-        message: "Gift deletado com sucesso"
-      });
+      return res.status(200).json({ success: true, message: 'Gift deletado com sucesso' });
     }
     catch (error) {
       LogUtils.errorLogger(error);
-      res.status(400).json({
-        success: false,
-        message: 'Erro ao deletar o gift'
-      });
+      res.status(400).json({ success: false, message: 'Erro ao deletar o gift' });
     }
   }
 }

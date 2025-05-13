@@ -35,11 +35,10 @@ class GiftsController {
   async getGifts(req, res) {
     try {
       const gifts = await prisma.gifts.findMany();
-
       return res.status(200).json(gifts);
     } catch (error) {
       LogUtils.errorLogger(error);
-      res.status(400).json({ success: false, message: '' });
+      res.status(400).json({ success: false, message: 'Erro ao buscar presentes' });
     }
   }
 
@@ -48,10 +47,7 @@ class GiftsController {
       const giftId = parseInt(req.params.gift_id);
       const gift = await prisma.gifts.findUnique({ where: { id: giftId } });
 
-      return res.status(200).json({
-        success: true,
-        gift: FormatUtils.toCamelCase(gift),
-      });
+      return res.status(200).json({ success: true, gift: FormatUtils.toCamelCase(gift) });
     } catch (error) {
       LogUtils.errorLogger(error);
       res.status(400).json({ success: false, message: 'Erro ao buscar presente' });
@@ -114,7 +110,6 @@ class GiftsController {
 
       return res.status(200).json({ success: true, gift: FormatUtils.toCamelCase(gift) });
     } catch (error) {
-      console.log(error)
       LogUtils.errorLogger(error);
       return res.status(400).json({ success: false, message: 'Erro ao criar presente' });
     }
@@ -123,57 +118,46 @@ class GiftsController {
   async updateGift(req, res) {
     try {
       const { id } = req.params;
-      const { name, description, price, event_categories_id } = req.body;
+      const { name, description, price, eventCategoryId } = req.body;
+      const numericPrice = Number(price);
 
-      // Verifica se todos os campos foram preenchidos
-      if (!name || !description || !price || !event_categories_id) {
-        return res.status(400).json({
-          success: false,
-          message: "Preencha todos os campos"
-        });
+      if (!name || !description || !numericPrice || !eventCategoryId) {
+        return res.status(400).json({ success: false, message: "Preencha todos os campos" });
       }
-      // Verifica se o preço é um número válido maior que 0
-      if (typeof price !== 'number' || price <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Preço deve ser maior que 0'
-        });
+      if (typeof numericPrice !== 'number' || numericPrice <= 0) {
+        return res.status(400).json({ success: false, message: 'Preço deve ser maior que zero' });
       }
-      // Verifica se o presente existe
-      const giftExists = await prisma.gifts.findUnique({
-        where: { id: Number(id) }
-      });
+
+      // Check gify
+      const giftExists = await prisma.gifts.findUnique({ where: { id: parseInt(id) } });
 
       if (!giftExists) {
-        return res.status(404).json({
-          success: false,
-          message: "Presente não encontrado"
-        });
+        return res.status(404).json({ success: false, message: "Presente não encontrado" });
       }
+
       const categoryExists = await prisma.event_categories.findUnique({
-        where: { id: event_categories_id }
+        where: { id: parseInt(eventCategoryId) }
       });
 
       if (!categoryExists) {
-        return res.status(404).json({
-          success: false,
-          message: 'Categoria não encontrada'
-        });
+        return res.status(404).json({ success: false, message: 'Categoria não encontrada' });
       }
-      // Atualiza o presente no banco de dados
+
+      // Update gift
       const updatedGift = await prisma.gifts.update({
         where: { id: Number(id) },
-        data: { name, description, price, event_categories_id }
+        data: { 
+          name, 
+          description, 
+          price: numericPrice, 
+          event_category_id: parseInt(eventCategoryId)
+        }
       });
 
-      // Responde com o presente atualizado
       return res.status(200).json({ success: true, data: updatedGift });
     } catch (error) {
       LogUtils.errorLogger(error);
-      return res.status(400).json({
-        success: false,
-        message: 'Erro ao atualizar o presente'
-      });
+      return res.status(400).json({ success: false, message: 'Erro ao atualizar o presente' });
     }
   }
 
@@ -183,17 +167,11 @@ class GiftsController {
 
       await prisma.gifts.delete({ where: { id: Number(id) } });
 
-      return res.status(200).json({
-        sucesso: true,
-        message: "Gift deletado com sucesso"
-      });
+      return res.status(200).json({ success: true, message: 'Gift deletado com sucesso' });
     }
     catch (error) {
       LogUtils.errorLogger(error);
-      res.status(400).json({
-        success: false,
-        message: 'Erro ao deletar o gift'
-      });
+      res.status(400).json({ success: false, message: 'Erro ao deletar o gift' });
     }
   }
 }
