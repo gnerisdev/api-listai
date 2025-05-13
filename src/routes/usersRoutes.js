@@ -11,6 +11,7 @@ import GalleryController from '../controllers/users/GalleryController.js';
 import ServicesController from '../controllers/users/ServicesController.js';
 import EventGuestsController from '../controllers/users/EventGuestsController.js';
 import EventMessagesController from '../controllers/users/EventMessagesController.js';
+import GiftsReceivedController from '../controllers/users/GiftsReceivedController.js';
 
 const router = Router();
 const upload = multer({ dest: 'tmp/' });
@@ -24,36 +25,59 @@ const galleryController = new GalleryController();
 const servicesController = new ServicesController();
 const eventGuestsController = new EventGuestsController();
 const eventMessagesController = new EventMessagesController();
+const giftsReceivedController = new GiftsReceivedController();
 
-// Auth
+// Authentication Routes
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 
-// Public
+// Public Routes (Accessible without authentication)
 router.get('/event-types', authController.getEventTypes);
 router.get('/event-categories', authController.getEventCategories);
 router.get('/fetch-gifts-slug', authController.fetchGiftsSlug);
 
-// Protected Routes
+// Protected Routes (Require authentication - userAuthMiddleware)
+
+// User Routes
 router.get('/me', userAuthMiddleware, userController.fetchUserProfile);
+
+// Event Routes
 router.get('/event/:event_id', userAuthMiddleware, eventController.getEvent);
 router.put('/event/:event_id', userAuthMiddleware, eventController.updateEvent);
+
+// Event Details Routes
 router.get('/event-details/:event_id', userAuthMiddleware, eventDetailsController.getDetails);
 router.put('/event-details/:event_id', userAuthMiddleware, eventDetailsController.updateDetails);
+
+// Gifts Routes
 router.get('/gifts/:event_id', userAuthMiddleware, giftsController.getGifts);
 router.post('/gifts/suggestion/:event_id', userAuthMiddleware, giftsController.addGiftSuggestion);
 router.delete('/gifts/:event_id/:gift_id', userAuthMiddleware, giftsController.removeGift);
+
+// Event Settings Routes
 router.get('/event-settings/:event_id', userAuthMiddleware, eventSettingsController.getSettings);
-router.put('/', userAuthMiddleware, eventSettingsController.update);
+router.put('/', userAuthMiddleware, eventSettingsController.update); // Attention: This PUT route seems generic, verify if the path is correct.
+
+// Event Gallery Routes
 router.post('/event-gallery/:event_id', userAuthMiddleware, upload.single('file'), galleryController.addMedia);
 router.get('/event-gallery/:event_id', userAuthMiddleware, galleryController.getGallery);
+
+// Services Routes
 router.get('/services', userAuthMiddleware, servicesController.getServices);
 router.post('/services/purchase', userAuthMiddleware, servicesController.initiatePayment);
+
+// Event Guests Routes
 router.get('/guests/:event_id', userAuthMiddleware, eventGuestsController.getConfirmPresence);
 router.put('/guests/:event_id/:guest_id', userAuthMiddleware, eventGuestsController.saveGuest);
 router.post('/guests/:event_id', userAuthMiddleware, eventGuestsController.saveGuest);
 router.delete('/guests/:event_id/:guest_id', userAuthMiddleware, eventGuestsController.removeGuest);
+
+// Event Messages Routes
 router.get('/messages/:event_id', userAuthMiddleware, eventMessagesController.getMessages);
 router.delete('/messages/:event_id/:message_id', userAuthMiddleware, eventMessagesController.removeMessage);
+
+// Received Gifts Routes
+router.get('/events/:event_id/received-gifts', userAuthMiddleware, giftsReceivedController.getReceived);
+router.get('/events/:event_id/transactions', userAuthMiddleware, giftsReceivedController.getTransactions);
 
 export default router;

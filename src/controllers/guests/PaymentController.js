@@ -24,23 +24,38 @@ class PaymentController {
         return prev += (current.price * current.quantity);
       }, 0);
 
+      if (!Number.isFinite(total) || total <= 0) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Erro ao calcular o total da transição.' 
+        });
+      }
+
+      // Calculate Values
+      const systemFee = Math.round(total * 0.10 * 100) / 100;
+      const transactionFee = Math.round(total * 0.05 * 100) / 100;
+      const userAmount = Math.round((total - systemFee - transactionFee) * 100) / 100;
+
       // Create transition
-      let guestTransition;
+      let eventGiftTransactions;
       await prisma.$transaction(async () => {
-        guestTransition = await prisma.guest_transitions.create({
+        eventGiftTransactions = await prisma.event_gift_transactions.create({
           data: {
             guest_name: guestName,
             guest_contact: guestContact,
             event_id: eventId,
             total_price: total,
+            transaction_fee: transactionFee,
+            system_fee: systemFee,
+            user_amount: userAmount,
             reference: '',
             status: 'PENDING'
           }
         });
 
-        await prisma.guest_transition_items.createMany({
+        await prisma.event_gift_transaction_items.createMany({
           data: gifts.map(gift => ({
-            guest_transition_id: guestTransition.id,
+            event_gift_transaction_id: eventGiftTransactions.id,
             gift_id: gift.id,
             quantity: gift.quantity,
             gift_name: gift.name,
@@ -49,14 +64,14 @@ class PaymentController {
         });
       });
 
-      if (!guestTransition) {
+      if (!eventGiftTransactions) {
         return res.status(200).json({ success: false, message: 'Erro ao gerar transição.' });
       }
 
       // Reference
-      const reference = `guest_transition_${guestTransition.id}`;
-      await prisma.guest_transitions.update({
-        where: { id: guestTransition.id },
+      const reference = `guest_transition_${eventGiftTransactions.id}`;
+      await prisma.event_gift_transactions.update({
+        where: { id: eventGiftTransactions.id },
         data: { reference }
       });
 
@@ -65,6 +80,7 @@ class PaymentController {
         title: item.name,
         description: item.description,
         unit_price: item.price,
+        picture_url: item?.image_url,
         quantity: item.quantity,
         currency_id: 'BRL'
       }));

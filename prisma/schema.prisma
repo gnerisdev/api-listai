@@ -34,6 +34,7 @@ model users {
   gift_suggestions gift_suggestions[]
   user_transitions user_transitions[]
   event_settings   event_settings[]
+  payouts          payout_requests[]
 }
 
 model events {
@@ -51,19 +52,21 @@ model events {
   show_event_info          Boolean   @default(true)
   allow_guest_confirmation Boolean   @default(true)
   created_at               DateTime  @default(now())
+  total_payout_received    Float?
   updated_at               DateTime? @updatedAt
 
-  users             users_events[]      @relation("UserEvents")
-  event_details     event_details[]
-  event_gifts       event_gifts[]
-  gift_suggestions  gift_suggestions[]
-  event_guests      event_guests[]
-  event_gallery     event_gallery[]
-  event_services    event_services[]
-  user_transitions  user_transitions[]
-  event_messages    event_messages[]
-  guest_transitions guest_transitions[]
-  event_settings    event_settings[]
+  users                   users_events[]            @relation("UserEvents")
+  event_details           event_details[]
+  event_gifts             event_gifts[]
+  gift_suggestions        gift_suggestions[]
+  event_guests            event_guests[]
+  event_gallery           event_gallery[]
+  event_services          event_services[]
+  user_transitions        user_transitions[]
+  event_messages          event_messages[]
+  event_gift_transactions event_gift_transactions[]
+  event_settings          event_settings[]
+  payouts                 payout_requests[]
 }
 
 model event_gifts {
@@ -161,10 +164,9 @@ model gifts {
   updated_at        DateTime? @updatedAt
   deleted_at        DateTime?
 
-  event_categories       event_categories         @relation(fields: [event_category_id], references: [id])
-  event_gifts            event_gifts[]
-  guest_transitions      guest_transitions[]
-  guest_transition_items guest_transition_items[]
+  event_categories             event_categories               @relation(fields: [event_category_id], references: [id])
+  event_gifts                  event_gifts[]
+  event_gift_transaction_items event_gift_transaction_items[]
 }
 
 model gift_suggestions {
@@ -279,40 +281,65 @@ model user_transitions {
   @@index([service_id])
 }
 
-model guest_transitions {
-  id            Int              @id @default(autoincrement())
-  event_id      Int
-  guest_name    String
-  guest_contact String
-  total_price   Float
-  created_at    DateTime         @default(now())
-  reference     String
-  status        TransitionStatus @default(PENDING)
+model event_gift_transactions {
+  id              Int              @id @default(autoincrement())
+  event_id        Int
+  guest_name      String
+  guest_contact   String
+  total_price     Float
+  user_amount     Float?
+  system_fee      Float?
+  transaction_fee Float?
+  created_at      DateTime         @default(now())
+  reference       String
+  status          TransitionStatus @default(PENDING)
 
-  event   events                   @relation(fields: [event_id], references: [id])
-  items   guest_transition_items[]
-  gifts   gifts?                   @relation(fields: [giftsId], references: [id])
-  giftsId Int?
+  event events                         @relation(fields: [event_id], references: [id])
+  items event_gift_transaction_items[]
 
   @@index([event_id])
 }
 
-model guest_transition_items {
-  id                  Int    @id @default(autoincrement())
-  guest_transition_id Int
-  gift_id             Int
-  quantity            Int
-  gift_name           String
-  unit_price          Float
+model event_gift_transaction_items {
+  id                        Int    @id @default(autoincrement())
+  event_gift_transaction_id Int
+  gift_id                   Int
+  quantity                  Int
+  gift_name                 String
+  unit_price                Float
 
-  guest_transition guest_transitions @relation(fields: [guest_transition_id], references: [id])
-  gift             gifts             @relation(fields: [gift_id], references: [id])
+  event_gift_transaction event_gift_transactions @relation(fields: [event_gift_transaction_id], references: [id])
+  gift                   gifts                   @relation(fields: [gift_id], references: [id])
 }
 
 enum TransitionStatus {
   APPROVED
   PENDING
   RECUSED
+  CANCELLED
+}
+
+model payout_requests {
+  id       Int @id @default(autoincrement())
+  user_id  Int
+  event_id Int
+
+  requested_amount Float
+  paid_amount      Float?
+  status           PayoutsStatus @default(PENDING)
+  payment_method   String?
+  paid_at          DateTime?
+  created_at       DateTime      @default(now())
+  updated_at       DateTime?     @updatedAt
+
+  user  users  @relation(fields: [user_id], references: [id])
+  event events @relation(fields: [event_id], references: [id])
+}
+
+enum PayoutsStatus {
+  PENDING
+  PAID
+  FAILED
   CANCELLED
 }
 

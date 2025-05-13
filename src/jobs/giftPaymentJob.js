@@ -5,8 +5,8 @@ import { MercadoPagoService } from '../services/MercadoPagoService.js';
 const mercadoPagoService = new MercadoPagoService();
 
 export function paymentStatusJob() {
-  cron.schedule('*/1 * * * *', async () => {
-    const pendingTransactions = await prisma.guest_transitions.findMany({
+  cron.schedule('*/100 * * * *', async () => {
+    const pendingTransactions = await prisma.event_gift_transactions.findMany({
       where: { status: 'PENDING' }
     });
 
@@ -16,18 +16,20 @@ export function paymentStatusJob() {
       try {
         const transition = await mercadoPagoService.getPaymentByReference(item.reference);
 
+        if (!transition?.status) continue;
+
         if (transition.status === 'approved') {
-          await prisma.guest_transitions.update({
+          await prisma.event_gift_transactions.update({
             where: { id: item.id },
             data: { status: 'APPROVED' }
           });
         } else if (transition.status === 'rejected') {
-          await prisma.guest_transitions.update({
+          await prisma.event_gift_transactions.update({
             where: { id: item.id },
             data: { status: 'RECUSED' }
           });
         } else if (transition.status === 'cancelled') {
-          await prisma.guest_transitions.update({
+          await prisma.event_gift_transactions.update({
             where: { id: item.id },
             data: { status: 'CANCELLED' }
           });
