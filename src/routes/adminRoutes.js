@@ -12,6 +12,8 @@ import EventCategoriesController from '../controllers/admin/EventCategoriesContr
 import ServicesController from '../controllers/admin/ServicesController.js';
 import EventGuestsController from '../controllers/admin/EventGuestsController.js';
 import EventMessagesController from '../controllers/admin/EventMessagesController.js';
+import EventGiftsReceivedController from '../controllers/admin/EventGiftsReceivedController.js';
+import PayoutsController from '../controllers/admin/PayoutsController.js';
 
 const router = Router();
 const upload = multer({ dest: 'tmp/' });
@@ -26,6 +28,8 @@ const eventCategoriesController = new EventCategoriesController();
 const servicesController = new ServicesController();
 const eventGuestsController = new EventGuestsController();
 const eventMessagesController = new EventMessagesController();
+const eventGiftsReceivedController = new EventGiftsReceivedController();
+const payoutsController = new PayoutsController();
 
 // Public Routes
 router.post('/login', authController.login);
@@ -59,6 +63,10 @@ router.get('/events/:event_id/guests', adminAuthMiddleware, eventGuestsControlle
 router.put('/events/:event_id/guests/:guest_id', adminAuthMiddleware, eventGuestsController.saveGuest);
 router.post('/events/:event_id/guests', adminAuthMiddleware, eventGuestsController.saveGuest);
 router.delete('/events/:event_id/guests/:guest_id', adminAuthMiddleware, eventGuestsController.removeGuest);
+// Event Received Gifts 
+router.get('/events/:event_id/received-gifts', adminAuthMiddleware, eventGiftsReceivedController.getReceived);
+router.get('/events/:event_id/transactions', adminAuthMiddleware, eventGiftsReceivedController.getTransactions);
+router.get('/events/:event_id/payout-requests', adminAuthMiddleware, eventGiftsReceivedController.createPayoutRequest);
 // Gifts
 router.get('/gifts', adminAuthMiddleware, giftsController.getGifts);
 router.get('/gifts/categories', adminAuthMiddleware, giftsController.getGiftsByCategory);
@@ -73,5 +81,8 @@ router.get('/services/:service_id', adminAuthMiddleware, servicesController.getS
 router.post('/services', adminAuthMiddleware, servicesController.create);
 router.put('/services/:service_id', adminAuthMiddleware, servicesController.update);
 router.delete('/services/:service_id', adminAuthMiddleware, servicesController.remove);
+// Payouts
+router.get('/payouts', adminAuthMiddleware, payoutsController.getPayouts);
+router.put('/payouts/:id/conclude', payoutsController.concludePayout);
 
 export default router;

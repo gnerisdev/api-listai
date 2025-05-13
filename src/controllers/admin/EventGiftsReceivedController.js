@@ -3,27 +3,12 @@ import { LogUtils } from '../../utils/LogUtils.js';
 import { FormatUtils } from '../../utils/FormatUtils.js';
 import { MathUtils } from '../../utils/MathUtils.js';
 
-class GiftsReceivedController {
+class EventGiftsReceivedController {
   async getReceived(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
       const eventId = parseInt(req.params.event_id);
 
-      // Verify user and event association
-      const userEvent = await prisma.users_events.findFirst({
-        where: { user_id: userId, event_id: eventId },
-        include: { event: true },
-      });
-
-      if (!userEvent?.event) {
-        return res.status(404).json({
-          success: false,
-          message:
-            'Evento não encontrado ou você não tem permissão para acessá-lo.',
-        });
-      }
-
-      // Get received gifts (APPROVED guest transitions with associated items)
+      // Get received gifts (APPROVED)
       const receivedGifts = await prisma.event_gift_transactions.findMany({
         where: { event_id: eventId, status: 'APPROVED' },
         select: {
@@ -63,29 +48,13 @@ class GiftsReceivedController {
 
   async getTransactions(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
       const eventId = parseInt(req.params.event_id);
-
-      // Verify user and event association
-      const userEvent = await prisma.users_events.findFirst({
-        where: { user_id: userId, event_id: eventId },
-        include: { event: true },
-      });
-
-      if (!userEvent?.event) {
-        return res.status(404).json({
-          success: false,
-          message: 'Evento não encontrado ou você não tem permissão para acessá-lo.',
-        });
-      }
 
       const eventGiftTransactions = await prisma.event_gift_transactions.findMany({
         where: { event_id: eventId, status: 'APPROVED' },
       });
 
-      const payouts = await prisma.payout_requests.findMany({
-        where: { event_id: eventId, user_id: userId },
-      });
+      const payouts = await prisma.payout_requests.findMany({ where: { event_id: eventId } });
 
       const payoutPaids = payouts.map(item => item.status === 'PAID' ? item.requested_amount : 0);
       const payoutPendings = payouts.map(item => item.status === 'PENDING' ? item.requested_amount : 0);
@@ -115,30 +84,14 @@ class GiftsReceivedController {
 
   async createPayoutRequest(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
       const eventId = parseInt(req.params.event_id);
-
-      // Verify user and event association
-      const userEvent = await prisma.users_events.findFirst({
-        where: { user_id: userId, event_id: eventId },
-        include: { event: true },
-      });
-
-      if (!userEvent?.event) {
-        return res.status(404).json({
-          success: false,
-          message: 'Evento não encontrado ou você não tem permissão para acessá-lo.',
-        });
-      }
 
       // Calculate total available amount
       const eventGiftTransactions = await prisma.event_gift_transactions.findMany({
         where: { event_id: eventId, status: 'APPROVED' },
       });
 
-      const payouts = await prisma.payout_requests.findMany({
-        where: { event_id: eventId, user_id: userId },
-      });
+      const payouts = await prisma.payout_requests.findMany({ where: { event_id: eventId } });
 
       const payoutPaids = payouts.map(item => item.status === 'PAID' ? item.requested_amount : 0);
       const payoutPendings = payouts.map(item => item.status === 'PENDING' ? item.requested_amount : 0);
@@ -164,7 +117,7 @@ class GiftsReceivedController {
 
       // Create the payout request with the total available amount
       await prisma.payout_requests.create({
-        data: { user_id: userId, event_id: eventId, requested_amount: totalAvailable },
+        data: { event_id: eventId, requested_amount: totalAvailable },
       });
 
       return res.status(201).json({
@@ -180,4 +133,4 @@ class GiftsReceivedController {
   }
 }
 
-export default GiftsReceivedController;
+export default EventGiftsReceivedController;
