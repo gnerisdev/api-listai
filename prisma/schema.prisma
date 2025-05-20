@@ -46,6 +46,8 @@ model events {
   title_description        String?
   color                    String    @default("#432070")
   active                   Boolean   @default(true)
+  image_url                String?
+  image_cdn                String?
   event_category_id        Int
   show_gift_list           Boolean   @default(true)
   show_guest_messages      Boolean   @default(true)

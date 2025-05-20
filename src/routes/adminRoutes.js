@@ -14,6 +14,7 @@ import EventGuestsController from '../controllers/admin/EventGuestsController.js
 import EventMessagesController from '../controllers/admin/EventMessagesController.js';
 import EventGiftsReceivedController from '../controllers/admin/EventGiftsReceivedController.js';
 import PayoutsController from '../controllers/admin/PayoutsController.js';
+import DashboardController from '../controllers/admin/DashboardController.js';
 
 const router = Router();
 const upload = multer({ dest: 'tmp/' });
@@ -30,6 +31,7 @@ const eventGuestsController = new EventGuestsController();
 const eventMessagesController = new EventMessagesController();
 const eventGiftsReceivedController = new EventGiftsReceivedController();
 const payoutsController = new PayoutsController();
+const dashboardController = new DashboardController();
 
 // Public Routes
 router.post('/login', authController.login);
@@ -84,5 +86,7 @@ router.delete('/services/:service_id', adminAuthMiddleware, servicesController.r
 // Payouts
 router.get('/payouts', adminAuthMiddleware, payoutsController.getPayouts);
 router.put('/payouts/:id/conclude', payoutsController.concludePayout);
+// Dashboard
+router.get('/dashboard/retrieve', adminAuthMiddleware, dashboardController.retrieveEventData);
 
 export default router;

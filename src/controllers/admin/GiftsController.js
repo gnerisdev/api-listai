@@ -119,6 +119,7 @@ class GiftsController {
     try {
       const { id } = req.params;
       const { name, description, price, eventCategoryId } = req.body;
+      const image = req.file || null;
       const numericPrice = Number(price);
 
       if (!name || !description || !numericPrice || !eventCategoryId) {
@@ -128,20 +129,44 @@ class GiftsController {
         return res.status(400).json({ success: false, message: 'Preço deve ser maior que zero' });
       }
 
-      // Check gify
+      // Check gift
       const giftExists = await prisma.gifts.findUnique({ where: { id: parseInt(id) } });
 
       if (!giftExists) {
         return res.status(404).json({ success: false, message: "Presente não encontrado" });
       }
 
-      const categoryExists = await prisma.event_categories.findUnique({
-        where: { id: parseInt(eventCategoryId) }
-      });
+      const categoryExists = await prisma.event_categories.findUnique({ where: { id: parseInt(eventCategoryId) } });
 
       if (!categoryExists) {
         return res.status(404).json({ success: false, message: 'Categoria não encontrada' });
       }
+
+      // Update image
+      let imageUrl = giftExists.image_url;
+      let imageCdn = giftExists.image_cdn;
+        
+      if (image) {
+        const cloudinary = CloudinaryService.getInstance();
+      
+        // Delete image
+        if (imageUrl) {
+          const publicId = CloudinaryService.getPublicId(imageUrl);
+          await cloudinary.uploader.destroy(publicId);
+        }
+        
+        // Upload new image
+        const resultUpload = await cloudinary.uploader.upload(image.path, { resource_type: 'auto' });
+        if (!resultUpload.secure_url) {
+          return res.status(400).json({ 
+            success: false, 
+            message: 'Falha ao criar atualizar devido a um erro no envio da imagem.' 
+          });
+        }
+        
+        imageUrl = resultUpload.secure_url;
+        imageCdn = CloudinaryService.getAccountIndexOfWeek();
+      }  
 
       // Update gift
       const updatedGift = await prisma.gifts.update({
@@ -150,7 +175,9 @@ class GiftsController {
           name, 
           description, 
           price: numericPrice, 
-          event_category_id: parseInt(eventCategoryId)
+          event_category_id: parseInt(eventCategoryId),
+          image_cdn: imageCdn,
+          image_url: imageUrl
         }
       });
 
