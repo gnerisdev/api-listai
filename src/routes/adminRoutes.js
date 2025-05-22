@@ -15,6 +15,7 @@ import EventMessagesController from '../controllers/admin/EventMessagesControlle
 import EventGiftsReceivedController from '../controllers/admin/EventGiftsReceivedController.js';
 import PayoutsController from '../controllers/admin/PayoutsController.js';
 import DashboardController from '../controllers/admin/DashboardController.js';
+import EventServicesController from '../controllers/admin/EventServicesController.js';
 
 const router = Router();
 const upload = multer({ dest: 'tmp/' });
@@ -32,6 +33,7 @@ const eventMessagesController = new EventMessagesController();
 const eventGiftsReceivedController = new EventGiftsReceivedController();
 const payoutsController = new PayoutsController();
 const dashboardController = new DashboardController();
+const eventServicesController = new EventServicesController();
 
 // Public Routes
 router.post('/login', authController.login);
@@ -46,6 +48,10 @@ router.get('/user-events/:user_id', adminAuthMiddleware, manageUsersController.g
 router.get('/events', adminAuthMiddleware, eventsController.getEvents);
 router.get('/events/:event_id', adminAuthMiddleware, eventsController.getEvent);
 router.put('/events/:event_id', adminAuthMiddleware, eventsController.updatedEvent);
+// Event Services
+router.get('/events/:event_id/services/default', adminAuthMiddleware, eventServicesController.getDefaultServices);
+router.get('/events/:event_id/services/contracted', adminAuthMiddleware, eventServicesController.getContractedServices);
+router.get('/events/:event_id/services/pending-payments', adminAuthMiddleware, eventServicesController.getPendingPaymentServices);
 // Event Types
 router.get('/event-types', adminAuthMiddleware, eventTypesController.getEventTypes);
 router.get('/event-types-with-categories', adminAuthMiddleware, eventTypesController.getEventTypesWithCategories);

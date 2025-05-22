@@ -22,12 +22,10 @@ class GalleryController {
       }
 
       // Get gallery
-      console.log(eventId)
       const gallery = await prisma.event_gallery.findMany({ where: { event_id: eventId } });
 
       return res.status(200).json({ success: true, gallery: FormatUtils.toCamelCase(gallery) });
     } catch (error) {
-      console.log(error);
       LogUtils.errorLogger(error);
       return res.status(500).json({ success: false, message: 'Erro ao buscar imagens da galeria.' });
     }
@@ -56,7 +54,7 @@ class GalleryController {
   
       // Get services for type
       const servicesPaid = await prisma.event_services.aggregate({
-        where: { event_id: eventId, services: { type: fileType } },
+        where: { event_id: eventId, service: { type: fileType } },
         _sum: { quantity: true }
       });
 
@@ -96,7 +94,6 @@ class GalleryController {
   
       return res.status(201).json({ success: true, gallery: FormatUtils.toCamelCase(gallery) });
     } catch (error) {
-      console.log(error)
       // LogUtils.errorLogger(error);
       return res.status(500).json({ success: false, message: 'Erro ao adicionar a imagem.' });
     }

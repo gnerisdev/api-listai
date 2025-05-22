@@ -30,40 +30,46 @@ const cloudinaryAccounts = [
     api_secret: CLOUDINARY_SECRET_4,
   },
 ];
-
 export class CloudinaryService {
+  static cachedWeekIndex = null;
+  static configured = false;
+
   static getCloudinaryAccountByWeek() {
     const today = new Date();
     const weekOfMonth = Math.ceil(today.getDate() / 7);
     const index = (weekOfMonth - 1) % cloudinaryAccounts.length;
-    return cloudinaryAccounts[index];
+    return index;
   }
 
   static getInstance() {
-    const selectedAccount = this.getCloudinaryAccountByWeek();
+    const index = this.getCloudinaryAccountByWeek();
 
-    cloudinary.config({
-      cloud_name: selectedAccount.cloud_name,
-      api_key: selectedAccount.api_key,
-      api_secret: selectedAccount.api_secret,
-    });
+    if (!this.configured || this.cachedWeekIndex !== index) {
+      const account = cloudinaryAccounts[index];
+
+      cloudinary.config({
+        cloud_name: account.cloud_name,
+        api_key: account.api_key,
+        api_secret: account.api_secret,
+      });
+
+      this.cachedWeekIndex = index;
+      this.configured = true;
+    }
 
     return cloudinary;
   }
 
   static getAccountIndexOfWeek() {
-    const today = new Date();
-    const weekOfMonth = Math.ceil(today.getDate() / 7);
-    return  '0' + (weekOfMonth - 1) % cloudinaryAccounts.length;
-  }  
+    return '0' + this.getCloudinaryAccountByWeek();
+  }
 
-  static async getPublicId(url) {  
+  static async getPublicId(url) {
     const parsedUrl = new URL(url);
-    const pathname = parsedUrl.pathname; 
-    const parts = pathname.split('/');      
+    const pathname = parsedUrl.pathname;
+    const parts = pathname.split('/');
     const publicIdWithExt = parts.slice(2).join('/');
-    const publicId = publicIdWithExt.replace(/\.[^/.]+$/, '');
-  
-    return publicId;
+    return publicIdWithExt.replace(/\.[^/.]+$/, '');
   }
 }
+

@@ -1,188 +1,73 @@
 import prisma from '#prisma';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { FormatUtils } from '../../utils/FormatUtils.js';
-import { CloudinaryService } from '../../services/CloudinaryServices.js';
 
 class EventServicesController {
-  async getServices(req, res) {
+  async getDefaultServices(req, res) {
+    try {
+      const allServices = await prisma.services.findMany({
+        where: { deleted_at: null, active: true, is_default: true },
+      });
+
+      return res.status(200).json({
+        success: true,
+        servicesDefault: FormatUtils.toCamelCase(allServices),
+      });
+    } catch (error) {
+      LogUtils.errorLogger(error);
+      return res.status(500).json({ success: false, message: 'Erro ao buscar serviços disponíveis.' });
+    }
+  }
+
+  async getContractedServices(req, res) {
     try {
       const eventId = parseInt(req.params.event_id);
 
-      const services = await prisma.event_services.findMany({
-        where: { 
-          deleted_at: null, 
-          active: true,
-        },
-        orderBy: { created_at: 'desc' },
-        include: {
-          event_categories: {
-            where: { deleted_at: null },
-            orderBy: { created_at: 'desc' },
-            include: { gifts: true },
-          },
-        },
+      if (isNaN(eventId)) {
+        return res.status(400).json({ success: false, message: 'ID do evento inválido.' });
+      }
+
+      const contractedServices = await prisma.event_services.findMany({
+        where: { event_id: eventId },
+        include: { service: true },
       });
 
       return res.status(200).json({
         success: true,
-        services: FormatUtils.toCamelCase(services)
+        contractedServices: FormatUtils.toCamelCase(contractedServices.map(item => item.service)),
       });
     } catch (error) {
       LogUtils.errorLogger(error);
-      res.status(400).json({ success: false, message: 'Erro ao buscar presentes' });
+      return res.status(500).json({ success: false, message: 'Erro ao buscar serviços contratados do evento.' });
     }
   }
 
-  async getGifts(req, res) {
+  async getPendingPaymentServices(req, res) {
     try {
-      const gifts = await prisma.gifts.findMany();
+      const eventId = parseInt(req.params.event_id);
 
-      return res.status(200).json(gifts);
-    } catch (error) {
-      LogUtils.errorLogger(error);
-      res.status(400).json({ success: false, message: '' });
-    }
-  }
+      if (isNaN(eventId)) {
+        return res.status(400).json({ success: false, message: 'ID do evento inválido.' });
+      }
 
-  async getGift(req, res) {
-    try {
-      const giftId = parseInt(req.params.gift_id);
-      const gift = await prisma.gifts.findUnique({ where: { id: giftId } });
+      const pendingTransactions = await prisma.event_service_transactions.findMany({
+        where: { event_id: eventId, status: 'PENDING' },
+        include: { service: true },
+      });
+
+      const pendingServices = pendingTransactions.map(item => ({
+        ...item.service,
+        expiration_at: item.expiration_at,
+        transaction_status: item.status
+      }));
 
       return res.status(200).json({
         success: true,
-        gift: FormatUtils.toCamelCase(gift),
+        pendingServices: FormatUtils.toCamelCase(pendingServices),
       });
     } catch (error) {
       LogUtils.errorLogger(error);
-      res.status(400).json({ success: false, message: 'Erro ao buscar presente' });
-    }
-  }
-
-  async create(req, res) {
-    try {
-      const { name, description, price, eventCategoryId } = req.body;
-      const image = req.file || null;
-      const messages = [];
-
-      // Validation
-      if (!name || typeof name !== 'string' || name.trim().length < 3) {
-        messages.push('"Nome" é obrigatório e deve conter ao menos 3 caracteres.');
-      }
-
-      if (!description || typeof description !== 'string' || description.trim().length < 10) {
-        messages.push('"Descrição" é obrigatório e deve conter ao menos 10 caracteres.');
-      }
-
-      if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-        messages.push('"Preço" é obrigatório e deve ser um número maior que zero.');
-      }
-
-      if (!eventCategoryId || isNaN(Number(eventCategoryId))) {
-        messages.push('"Categoria do Evento" é obrigatório.');
-      }
-
-      if (!image) messages.push('"Imagem" é obrigatório.');
-
-      if (messages.length > 0) {
-        return res.status(400).json({
-          success: false,
-          message: messages.map(msg => `• ${msg}`).join('\n<br>'),
-        });
-      }
-
-      // Upload Cloudinary
-      const cloudinary = CloudinaryService.getInstance();
-      const resultUpload = await cloudinary.uploader.upload(image.path, { resource_type: 'auto' });
-
-      if (!resultUpload.secure_url) {
-        return res.status(400).json({
-          success: false,
-          message: 'Falha ao criar tipo de evento devido a um erro no envio da imagem.'
-        });
-      }
-
-      const gift = await prisma.gifts.create({
-        data: {
-          name: name.trim(),
-          description: description.trim(),
-          event_category_id: Number(eventCategoryId),
-          price:  Number(price),
-          image_url: resultUpload.secure_url,
-          image_cdn: CloudinaryService.getAccountIndexOfWeek()
-        }
-      });
-
-      return res.status(200).json({ success: true, gift: FormatUtils.toCamelCase(gift) });
-    } catch (error) {
-      console.log(error)
-      LogUtils.errorLogger(error);
-      return res.status(400).json({ success: false, message: 'Erro ao criar presente' });
-    }
-  }
-
-  async updateGift(req, res) {
-    try {
-      const { id } = req.params;
-      const { name, description, price, event_categories_id } = req.body;
-
-      // Verifica se todos os campos foram preenchidos
-      if (!name || !description || !price || !event_categories_id) {
-        return res.status(400).json({
-          success: false,
-          message: "Preencha todos os campos"
-        });
-      }
-      // Verifica se o preço é um número válido maior que 0
-      if (typeof price !== 'number' || price <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Preço deve ser maior que 0'
-        });
-      }
-      // Verifica se o presente existe
-      const giftExists = await prisma.gifts.findUnique({
-        where: { id: Number(id) }
-      });
-
-      if (!giftExists) {
-        return res.status(404).json({ success: false, message: 'Presente não encontrado' });
-      }
-      const categoryExists = await prisma.event_categories.findUnique({
-        where: { id: event_categories_id }
-      });
-
-      if (!categoryExists) {
-        return res.status(404).json({ success: false, message: 'Categoria não encontrada' });
-      }
-      // Atualiza o presente no banco de dados
-      const updatedGift = await prisma.gifts.update({
-        where: { id: Number(id) },
-        data: { name, description, price, event_categories_id }
-      });
-
-      // Responde com o presente atualizado
-      return res.status(200).json({ success: true, data: updatedGift });
-    } catch (error) {
-      LogUtils.errorLogger(error);
-      return res.status(400).json({
-        success: false,
-        message: 'Erro ao atualizar o presente'
-      });
-    }
-  }
-
-  async removeGift(req, res) {
-    try {
-      const { id } = req.params;
-
-      await prisma.gifts.delete({ where: { id: Number(id) } });
-
-      return res.status(200).json({ success: true, message: 'Gift deletado com sucesso' });
-    }
-    catch (error) {
-      LogUtils.errorLogger(error);
-      res.status(400).json({ success: false, message: 'Erro ao deletar o gift' });
+      return res.status(500).json({ success: false, message: 'Erro ao buscar serviços pendentes de pagamento.' });
     }
   }
 }

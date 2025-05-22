@@ -44,6 +44,7 @@ router.get('/me', userAuthMiddleware, userController.fetchUserProfile);
 // Event Routes
 router.get('/event/:event_id', userAuthMiddleware, eventController.getEvent);
 router.put('/event/:event_id', userAuthMiddleware, eventController.updateEvent);
+router.post('/event/:event_id/upload/:type', userAuthMiddleware, upload.single('file'), eventController.uploadImage);
 
 // Event Details Routes
 router.get('/event-details/:event_id', userAuthMiddleware, eventDetailsController.getDetails);
@@ -54,17 +55,18 @@ router.get('/gifts/:event_id', userAuthMiddleware, giftsController.getGifts);
 router.post('/gifts/suggestion/:event_id', userAuthMiddleware, giftsController.addGiftSuggestion);
 router.delete('/gifts/:event_id/:gift_id', userAuthMiddleware, giftsController.removeGift);
 
-// Event Settings Routes
-router.get('/event-settings/:event_id', userAuthMiddleware, eventSettingsController.getSettings);
-router.put('/', userAuthMiddleware, eventSettingsController.update); // Attention: This PUT route seems generic, verify if the path is correct.
+// Event Settings 
+router.get('/event/:event_id/settings', userAuthMiddleware, eventSettingsController.getSettings);
+router.put('/event/:event_id/settings', userAuthMiddleware, eventSettingsController.update); 
 
 // Event Gallery Routes
 router.post('/event-gallery/:event_id', userAuthMiddleware, upload.single('file'), galleryController.addMedia);
 router.get('/event-gallery/:event_id', userAuthMiddleware, galleryController.getGallery);
 
 // Services Routes
-router.get('/services', userAuthMiddleware, servicesController.getServices);
+router.get('/events/:event_id/services', userAuthMiddleware, servicesController.getServices);
 router.post('/services/purchase', userAuthMiddleware, servicesController.initiatePayment);
+router.get('/events/:event_id/pending-payment-services', userAuthMiddleware, servicesController.getPendingPaymentServices);
 
 // Event Guests Routes
 router.get('/guests/:event_id', userAuthMiddleware, eventGuestsController.getConfirmPresence);
@@ -80,4 +82,5 @@ router.delete('/messages/:event_id/:message_id', userAuthMiddleware, eventMessag
 router.get('/events/:event_id/received-gifts', userAuthMiddleware, giftsReceivedController.getReceived);
 router.get('/events/:event_id/transactions', userAuthMiddleware, giftsReceivedController.getTransactions);
 router.get('/events/:event_id/payout-requests', userAuthMiddleware, giftsReceivedController.createPayoutRequest);
+
 export default router;

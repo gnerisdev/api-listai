@@ -38,6 +38,5 @@ export function paymentStatusJob() {
         console.error(`Erro ao processar transação ${item.id}:`, error);
       }
     }
-
   });
 }

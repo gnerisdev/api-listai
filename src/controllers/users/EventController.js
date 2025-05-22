@@ -1,4 +1,5 @@
 import prisma from '#prisma';
+import { CloudinaryService } from '../../services/CloudinaryServices.js';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { ValidationUtils } from '../../utils/ValidationUtils.js';
 
@@ -27,7 +28,6 @@ class EventController {
   
       return res.status(200).json({ success: true, message: 'Sucesso.', event: data });
     } catch (error) {
-      console.log(error)
       LogUtils.errorLogger(error);
       return res.status(500).json({ success: false, message: 'Erro ao buscar evento.' });
     }
@@ -95,7 +95,80 @@ class EventController {
         event: eventData,
       });
     } catch (error) {
-      console.log(error)
+      LogUtils.errorLogger(error);
+      return res.status(500).json({ success: false, message: 'Erro ao atualizar evento.' });
+    }
+  }  
+
+  async uploadImage(req, res) {  
+    try {
+      const userId = parseInt(req.headers.user_id);
+      const eventId = parseInt(req.params.event_id); 
+      const image = req.file || null; 
+      const type = req.params.type; 
+
+      if (type !== 'banner' && type !== 'avatar') {
+        return res.status(400).json({ success: true, message: 'Tipo de imagem inválido!' });
+      }
+  
+      // Verify permission
+      const userEvent = await prisma.users_events.findFirst({
+        where: { user_id: userId, event_id: eventId },
+        include: { event: true, }, 
+      });
+
+      if (!userEvent) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Não foi possível atualizar a imagem desse evento' 
+        });
+      }
+
+      const event = userEvent.event;
+
+      // Update image
+      let imageUrl = event[`${type}_url`];
+      let imageCdn = event[`${type}_cdn`];
+        
+      if (!image) {
+        return res.status(404).json({ success: false, message: "Imagem não encontrada." });
+      }
+
+      const cloudinary = CloudinaryService.getInstance();
+      
+      // Delete image
+      if (imageUrl) {
+        const publicId = CloudinaryService.getPublicId(imageUrl);
+        await cloudinary.uploader.destroy(publicId);
+      }
+      
+      // Upload new image
+      const resultUpload = await cloudinary.uploader.upload(image.path, { resource_type: 'auto' });
+      if (!resultUpload.secure_url) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Falha ao criar atualizar devido a um erro no envio da imagem.' 
+        });
+      }
+      
+      imageUrl = resultUpload.secure_url;
+      imageCdn = CloudinaryService.getAccountIndexOfWeek();
+
+      // Update event
+      await prisma.events.update({
+        where: { id: event.id }, 
+        data: { 
+          [`${type}_url`]: imageUrl, 
+          [`${type}_cdn`]: imageCdn 
+        },
+      });
+
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Imagem atualizado com sucesso!',
+        [`${type}Url`]: imageUrl, 
+      });
+    } catch (error) {
       LogUtils.errorLogger(error);
       return res.status(500).json({ success: false, message: 'Erro ao atualizar evento.' });
     }

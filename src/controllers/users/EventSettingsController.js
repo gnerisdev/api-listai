@@ -1,5 +1,6 @@
 import prisma from '#prisma';
 import { LogUtils } from '../../utils/LogUtils.js';
+import { FormatUtils } from '../../utils/FormatUtils.js';
 
 class EventSettingsController {
   async getSettings(req, res) {
@@ -7,160 +8,99 @@ class EventSettingsController {
       const eventId = parseInt(req.params.event_id);
       const userId = parseInt(req.headers['user_id']);
 
-      if (!userId || isNaN(userId) || !eventId || isNaN(eventId)) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'IDs de usuário ou evento inválidos.' 
-        });
-      }
+      // Verify permission
       const userEvent = await prisma.users_events.findFirst({
-        where: { 
-          user_id: userId, 
-          event_id: eventId 
-        }
+        where: { user_id: userId, event_id: eventId }
       });
 
       if (!userEvent) {
-        return res.status(403).json({ 
-          success: false, 
-          message: 'Acesso não autorizado.' 
-        });
+        return res.status(403).json({ success: false, message: 'Evento não encontrado.' });
       }
 
-      const eventSettings = await prisma.event_settings.findFirst({
-        where: {
-          user_id: userId,
-          event_id: eventId,
-        },
-        include: {
-          event: true
+      // Get settings
+      const eventSettings = await prisma.events.findFirst({
+        where: { id: eventId },
+        select: {
+          slug: true,
+          show_gift_list: true,
+          show_guest_messages: true,
+          show_event_info: true,
+          allow_guest_confirmation: true
         },
       });
-      
-      if (!eventSettings) {
-        eventSettings = await prisma.event_settings.create({
-          data: {
-            user_id: userId,
-            event_id: eventId,
-            show_gift_list: true,
-            show_guest_messages: true,
-            show_event_info: true,
-            allow_guest_confirmation: true
-          },
-          include: {
-            event: true
-          }
-        });
-      }
-    
-      const event = await prisma.users_events.findFirst({
-        where: { 
-          user_id: userId, 
-          event_id: eventId 
-        },
-        include: { 
-          event: true 
-        },
-      });
-
-      if (!event) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Evento não encontrado.' 
-        });
-      }
-
-      if (!eventSettings) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Configurações do evento não encontradas.' 
-        });
-      }
 
       return res.status(200).json({
         success: true,
         message: 'Configurações do evento recuperadas com sucesso.',
-        eventSettings: {
-          id: eventSettings.id,
-          event_id: eventSettings.event_id,
-          show_gift_list: eventSettings.show_gift_list,
-          show_guest_messages: eventSettings.show_guest_messages,
-          show_event_info: eventSettings.show_event_info,
-          allow_guest_confirmation: eventSettings.allow_guest_confirmation,
-        },
-  
+        settings: FormatUtils.toCamelCase(eventSettings),
       });
     } catch (error) {
-      console.log(error);
+      console.log(error)
       LogUtils.errorLogger(error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Erro ao buscar configurações do evento.' 
-      });
+      return res.status(500).json({ success: false, message: 'Erro ao buscar configurações.' });
     }
   }
 
   async update(req, res) {
     try {
       const eventId = parseInt(req.params.event_id);
-      const { 
-        show_gift_list, 
-        show_guest_messages, 
-        show_event_info, 
-        allow_guest_confirmation } = req.body;
+      const userId = parseInt(req.headers.user_id);
+      const {
+        showGiftList,
+        showGuestMessages,
+        showEventInfo,
+        allowGuestConfirmation,
+        slug,
+        password 
+      } = req.body;
 
-      if (!eventId) {
-        return res.status(400).json({ 
+      const userEvent = await prisma.users_events.findFirst({ 
+        where: { user_id: userId, event_id: eventId }
+      });
+
+      if (!userEvent) {
+        return res.status(403).json({ success: false, message: 'Evento não encontrado ou você não tem permissão para atualizá-lo.' });
+      }
+
+      const currentEventSettings = await prisma.events.findUnique({
+        where: { id: eventId },
+        select: { slug: true, password: true },
+      });
+
+      if (!currentEventSettings) {
+        return res.status(404).json({ 
           success: false, 
-          message: 'Evento não fornecido.' 
+          message: 'Configurações do evento não encontradas.' 
         });
       }
 
-      if (typeof show_gift_list !== 'boolean') {
-        return res.status(400).json({ success: false, message: 'Valor de show_gift_list inválido.' });
-      }
+      if (slug && slug !== currentEventSettings.slug) {
+        const existingEventWithSlug = await prisma.events.findUnique({ where: { slug: slug } });
 
-      if (typeof show_guest_messages !== 'boolean') {
-        return res.status(400).json({ success: false, message: 'Valor de show_guest_messages inválido.' });
-      }
-
-      if (typeof show_event_info !== 'boolean') {
-        return res.status(400).json({ success: false, message: 'Valor de show_event_info inválido.' });
-      }
-
-      if (typeof allow_guest_confirmation !== 'boolean') {
-        return res.status(400).json({ success: false, message: 'Valor de allow_guest_confirmation inválido.' });
-      }
-
-      const existingSettings = await prisma.event_settings.findUnique({ where: { event_id: eventId } });
-
-      if (!existingSettings) {
-        return res.status(404).json({ success: false, message: 'Configurações do evento não encontradas.' });
-      }
-
-      const updatedSettings = await prisma.event_settings.update({
-        where: { event_id: eventId },
-        data: {
-          show_gift_list,
-          show_guest_messages,
-          show_event_info,
-          allow_guest_confirmation,
-        },
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: 'Configurações do evento atualizadas com sucesso.',
-        eventSettings: {
-          id: updatedSettings.id,
-          event_id: updatedSettings.event_id,
-          show_gift_list: updatedSettings.show_gift_list,
-          show_guest_messages: updatedSettings.show_guest_messages,
-          show_event_info: updatedSettings.show_event_info,
-          allow_guest_confirmation: updatedSettings.allow_guest_confirmation,
+        if (existingEventWithSlug && existingEventWithSlug.id !== eventId) {
+          return res.status(409).json({ 
+            success: false, 
+            message: 'Esta URL já está em uso por outro evento. Por favor, escolha outro.' 
+          });
         }
-      });
+      }
+
+      const updateData = {
+        show_gift_list: showGiftList,
+        show_guest_messages: showGuestMessages,
+        show_event_info: showEventInfo,
+        allow_guest_confirmation: allowGuestConfirmation,
+      };
+
+      if (slug && slug !== currentEventSettings.slug) updateData.slug = slug;
+      if (password) updateData.password = password; 
+
+      await prisma.events.update({ where: { id: eventId }, data: updateData });
+
+      return res.status(200).json({ success: true, message: 'Configurações do evento atualizadas com sucesso.' });
+
     } catch (error) {
+      console.error(error);
       LogUtils.errorLogger(error);
       return res.status(500).json({ success: false, message: 'Erro ao atualizar configurações do evento.' });
     }
