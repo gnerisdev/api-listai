@@ -59,7 +59,6 @@ class AuthController {
             last_name: data.lastName,
             email: data.email,
             phone_number: data.phoneNumber,
-            source: data.source,
             password: bcrypt.hashSync(data.password, 12),
           },
         });
@@ -175,6 +174,7 @@ class AuthController {
       });
     }
   }
+  
   async fetchGiftsSlug(req, res) {
     try {
       const { event_categories_id, slug } = req.query;

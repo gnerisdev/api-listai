@@ -29,7 +29,9 @@ class EventController {
         color: event.color,
         gifts: event.event_gifts.map(item => item.gift),
         gallery: event.event_gallery,
-        details: event.event_details[0]
+        details: event.event_details[0],
+        bannerUrl: event.banner_url,
+        avatarUrl: event.avatar_url,
       }
   
       return res.status(200).json({ 
