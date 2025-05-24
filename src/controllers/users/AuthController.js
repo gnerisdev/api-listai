@@ -177,7 +177,7 @@ class AuthController {
   
   async fetchGiftsSlug(req, res) {
     try {
-      const { event_categories_id, slug } = req.query;
+      const { event_category_id, slug } = req.query;
 
       // Verify slug
       const findSlug = await prisma.events.findUnique({ where: { slug: slug } });
@@ -191,7 +191,7 @@ class AuthController {
 
       // Get gifts
       const gifts = await prisma.gifts.findMany({
-        where: { event_category_id: Number(event_categories_id) },
+        where: { event_category_id: Number(event_category_id) },
       });
 
       return res.status(200).json({ gifts, slug_available: true });

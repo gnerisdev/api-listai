@@ -9,7 +9,7 @@ class GalleryController {
   async getGallery(req, res) {
     try {
       const eventId = parseInt(req.params.event_id);
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
 
       // Verify user permission event
       const event = await prisma.users_events.findFirst({
@@ -34,7 +34,7 @@ class GalleryController {
   async addMedia(req, res) {
     try {
       const eventId = parseInt(req.params.event_id);
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
       const file = req.file;
       const fileType = req.body.fileType;
 

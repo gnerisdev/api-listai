@@ -5,7 +5,7 @@ import { FormatUtils } from '../../utils/FormatUtils.js';
 class AdminController {
   async fetchAdmin(req, res) {  
     try {
-      const adminId = parseInt(req.headers.admin_id);
+      const adminId = parseInt(req.headers['x-admin-id']);
   
       if (!adminId) {
         return res.status(400).json({ success: false, message: 'Usuário não fornecido.' });

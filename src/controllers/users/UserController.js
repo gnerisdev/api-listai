@@ -5,7 +5,7 @@ import { FormatUtils } from '../../utils/FormatUtils.js';
 class UserController {
   async fetchUserProfile(req, res) {  
     try {
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
   
       if (!userId) {
         return res.status(400).json({ success: false, message: 'Usuário não fornecido.' });

@@ -7,7 +7,7 @@ import { MercadoPagoService } from '../../services/MercadoPagoService.js';
 class ServicesController {
   async getServices(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
       const eventId = parseInt(req.params.event_id);
 
       const services = await prisma.services.findMany({ where: { active: true } });

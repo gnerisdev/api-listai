@@ -5,7 +5,7 @@ import { FormatUtils } from '../../utils/FormatUtils.js';
 class EventMessagesController {
   async getMessages(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
       const eventId = parseInt(req.params.event_id);
 
       const event = await prisma.users_events.findFirst({
@@ -34,7 +34,7 @@ class EventMessagesController {
 
   async removeMessage(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
       const eventId = parseInt(req.params.event_id);
       const messageId = parseInt(req.params.message_id);
   

@@ -6,7 +6,7 @@ import { FormatUtils } from '../../utils/FormatUtils.js';
 class EventDetailsController {
   async getDetails(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
       const eventId = parseInt(req.params.event_id);
 
       // Validation
@@ -42,7 +42,7 @@ class EventDetailsController {
 
   async updateDetails(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
       const eventId = parseInt(req.params.event_id);
       const {
         date,

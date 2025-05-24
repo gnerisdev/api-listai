@@ -44,7 +44,7 @@ class EventSettingsController {
   async update(req, res) {
     try {
       const eventId = parseInt(req.params.event_id);
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
       const {
         showGiftList,
         showGuestMessages,

@@ -5,7 +5,7 @@ import { FormatUtils } from '../../utils/FormatUtils.js';
 class EventGuestsController {
   async getConfirmPresence(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
       const eventId = parseInt(req.params.event_id);
 
       const event = await prisma.users_events.findFirst({
@@ -36,7 +36,7 @@ class EventGuestsController {
 
   async saveGuest(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
       const eventId = parseInt(req.params.event_id);
       const guestId = parseInt(req.params.guest_id);
 
@@ -101,7 +101,7 @@ class EventGuestsController {
 
   async removeGuest(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
       const eventId = parseInt(req.params.event_id);
       const guestId = parseInt(req.params.guest_id);
   

@@ -6,7 +6,7 @@ import { MathUtils } from '../../utils/MathUtils.js';
 class GiftsReceivedController {
   async getReceived(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
       const eventId = parseInt(req.params.event_id);
 
       // Verify user and event association
@@ -63,7 +63,7 @@ class GiftsReceivedController {
 
   async getTransactions(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
       const eventId = parseInt(req.params.event_id);
 
       // Verify user and event association
@@ -115,7 +115,7 @@ class GiftsReceivedController {
 
   async createPayoutRequest(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
       const eventId = parseInt(req.params.event_id);
 
       // Verify user and event association

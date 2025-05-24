@@ -5,7 +5,7 @@ import { FormatUtils } from '../../utils/FormatUtils.js';
 class GiftsController {
   async getGifts(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
       const eventId = parseInt(req.params.event_id);
 
       // Verify user e event
@@ -41,7 +41,7 @@ class GiftsController {
 
   async addGiftSuggestion(req, res) {
     try {
-      const userId = Number(req.headers.user_id);
+      const userId = Number(req.headers['x-user-id']);
       const eventId = Number(req.params.event_id);
       const { title, description } = req.body;
 
@@ -96,7 +96,7 @@ class GiftsController {
 
   async removeGift(req, res) {
     try {
-      const userId = parseInt(req.headers.user_id);
+      const userId = parseInt(req.headers['x-user-id']);
       const eventId = parseInt(req.params.event_id);
       const giftId = parseInt(req.params.gift_id);
 
