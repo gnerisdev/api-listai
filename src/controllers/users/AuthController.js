@@ -69,7 +69,7 @@ class AuthController {
             title: data.title,
             subtitle: data.subtitle,
             slug: data.slug,
-            event_categories_id: Number(data.event)
+            event_category_id: Number(data.event)
           },
         });
 
@@ -191,7 +191,7 @@ class AuthController {
 
       // Get gifts
       const gifts = await prisma.gifts.findMany({
-        where: { event_categories_id: Number(event_categories_id) },
+        where: { event_category_id: Number(event_categories_id) },
       });
 
       return res.status(200).json({ gifts, slug_available: true });
