@@ -186,9 +186,7 @@ class AuthController {
       const { event_category_id, slug } = req.query;
 
       // Verify slug
-      const findSlug = await prisma.events.findUnique({ 
-        where: { slug: slug, deleted_at: null, active: true } 
-      });
+      const findSlug = await prisma.events.findUnique({ where: { slug: slug } });
 
       if (findSlug) {
         return res.status(400).json({
@@ -209,6 +207,7 @@ class AuthController {
       return res.status(200).json({ gifts, slug_available: true });
     } catch (error) {
       LogUtils.errorLogger(error);
+      console.log(error)
       res.status(400).json({
         success: false,
         message: 'Erro ao buscar dados.',
