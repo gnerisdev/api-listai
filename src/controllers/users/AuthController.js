@@ -145,7 +145,9 @@ class AuthController {
 
   async getEventTypes(req, res) {
     try {
-      const eventTypes = await prisma.event_types.findMany();
+      const eventTypes = await prisma.event_types.findMany({
+        where: { active: true, deleted_at: null },
+      });
 
       return res.status(200).json(eventTypes);
     } catch (error) {
@@ -162,7 +164,11 @@ class AuthController {
     try {
       const eventTypeId = req.query.event_type_id;
       const eventCategories = await prisma.event_categories.findMany({
-        where: { event_type_id: Number(eventTypeId) },
+        where: { 
+          event_type_id: Number(eventTypeId),
+          active: true,
+          deleted_at: null
+        },
       });
 
       return res.status(200).json(eventCategories);
@@ -180,7 +186,9 @@ class AuthController {
       const { event_category_id, slug } = req.query;
 
       // Verify slug
-      const findSlug = await prisma.events.findUnique({ where: { slug: slug } });
+      const findSlug = await prisma.events.findUnique({ 
+        where: { slug: slug, deleted_at: null, active: true } 
+      });
 
       if (findSlug) {
         return res.status(400).json({
@@ -191,7 +199,11 @@ class AuthController {
 
       // Get gifts
       const gifts = await prisma.gifts.findMany({
-        where: { event_category_id: Number(event_category_id) },
+        where: { 
+          event_category_id: Number(event_category_id),
+          deleted_at: null,
+          active: true
+        },
       });
 
       return res.status(200).json({ gifts, slug_available: true });
