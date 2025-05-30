@@ -40,7 +40,7 @@ model events {
   title                    String
   subtitle                 String
   slug                     String    @unique
-  description              String?   @db.VarChar(1000)
+  description              String?   @db.VarChar(1500)
   title_description        String?
   color                    String    @default("#432070")
   active                   Boolean   @default(true)
@@ -157,7 +157,7 @@ model event_details {
 model gifts {
   id                Int       @id @default(autoincrement())
   name              String
-  description       String
+  description       String    @db.VarChar(1500)
   price             Float
   image_url         String?
   image_cdn         String?
@@ -257,8 +257,8 @@ model event_services {
   total_price                  Float
   created_at                   DateTime @default(now())
 
-  event                     events                     @relation(fields: [event_id], references: [id])
-  service                   services                   @relation(fields: [service_id], references: [id])
+  event   events   @relation(fields: [event_id], references: [id])
+  service services @relation(fields: [service_id], references: [id])
 
   @@index([event_id])
 }
@@ -307,8 +307,8 @@ model event_service_transactions {
   reference     String
   status        TransitionStatus @default(PENDING)
 
-  event         events          @relation(fields: [event_id], references: [id])
-  service       services        @relation(fields: [service_id], references: [id])
+  event   events   @relation(fields: [event_id], references: [id])
+  service services @relation(fields: [service_id], references: [id])
 
   @@index([event_id])
   @@index([service_id])
