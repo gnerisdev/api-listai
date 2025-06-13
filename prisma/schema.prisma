@@ -344,3 +344,12 @@ enum PayoutsStatus {
   FAILED
   CANCELLED
 }
+
+model settings {
+  id              Int @id @default(autoincrement())
+  percentage_gift Int @default(15)
+  color           String @default("#1d314c")
+  color_secondary String @default("#432070")
+  created_at      DateTime @default(now())
+  updated_at      DateTime? @updatedAt
+}

@@ -16,6 +16,7 @@ import EventGiftsReceivedController from '../controllers/admin/EventGiftsReceive
 import PayoutsController from '../controllers/admin/PayoutsController.js';
 import DashboardController from '../controllers/admin/DashboardController.js';
 import EventServicesController from '../controllers/admin/EventServicesController.js';
+import SettingsController from '../controllers/admin/SettingsController.js'; 
 
 const router = Router();
 const upload = multer({ dest: 'tmp/' });
@@ -34,12 +35,15 @@ const eventGiftsReceivedController = new EventGiftsReceivedController();
 const payoutsController = new PayoutsController();
 const dashboardController = new DashboardController();
 const eventServicesController = new EventServicesController();
+const settingsController = new SettingsController();
 
 // Public Routes
 router.post('/login', authController.login);
 
 // Protected Routes
 router.get('/me', adminAuthMiddleware, adminController.fetchAdmin);
+// Admin
+router.put('/password', adminAuthMiddleware, adminController.changePassword);
 // Users
 router.get('/users', adminAuthMiddleware, manageUsersController.listUsers);
 router.get('/users/:user_id', adminAuthMiddleware, manageUsersController.getUser);
@@ -94,5 +98,8 @@ router.get('/payouts', adminAuthMiddleware, payoutsController.getPayouts);
 router.put('/payouts/:id/conclude', payoutsController.concludePayout);
 // Dashboard
 router.get('/dashboard/retrieve', adminAuthMiddleware, dashboardController.retrieveEventData);
+// Settings
+router.get('/settings', adminAuthMiddleware, settingsController.getSettings);
+router.put('/settings', adminAuthMiddleware, settingsController.updateSettings);
 
 export default router;

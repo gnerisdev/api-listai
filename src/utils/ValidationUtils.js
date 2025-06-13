@@ -35,7 +35,7 @@ export class ValidationUtils {
   }
   
   static password(value) {
-    const validationPassword = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    const validationPassword = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
     //Minimum eight characters, at least one letter and one number:
     return validationPassword.test(value)
       ? true
@@ -81,7 +81,7 @@ export class ValidationUtils {
 
   static hours(value) {  
     const regex = /^([01]\d|2[0-3]):([0-5]\d)$/;
-    if (!regex.test(value)) return 'Formato inválido';
+    if (!regex.test(value)) return 'Horas inválida.';
 
     const [hours, minutes] = value.split(':').map(Number);
     if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {

@@ -37,6 +37,9 @@
   "imports": {
     "#prisma": "./prisma/client.js"
   },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

@@ -1,4 +1,5 @@
 import prisma from '#prisma';
+import moment from 'moment-timezone';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { ValidationUtils } from '../../utils/ValidationUtils.js';
 import { FormatUtils } from '../../utils/FormatUtils.js';
@@ -45,7 +46,7 @@ class EventDetailsController {
       const userId = parseInt(req.headers['x-user-id']);
       const eventId = parseInt(req.params.event_id);
       const {
-        date,
+        eventDate,
         startTime,
         endTime,
         eventType,
@@ -67,7 +68,7 @@ class EventDetailsController {
       // Validate required fields
       if (!userId) messages.push('Usuário não fornecido.');
       if (!eventId) messages.push('ID do evento não fornecido.');
-      if (!date || isNaN(new Date(date))) messages.push('Data do evento inválida.');
+      if (!eventDate || isNaN(new Date(eventDate))) messages.push('Data do evento inválida.');
 
       // Ensure start time is before end time
       if (new Date(startTime) >= new Date(endTime)) {
@@ -109,13 +110,17 @@ class EventDetailsController {
         return res.status(404).json({ success: false, message: 'Evento não encontrado.' });
       }
 
+      const eventDateMoment = moment.tz(eventDate, 'America/Sao_Paulo').toDate();
+      const startTimeMoment = moment.tz(`${eventDate}T${startTime}`, 'America/Sao_Paulo').toDate();
+      const endTimeMoment = moment.tz(`${eventDate}T${endTime}`, 'America/Sao_Paulo').toDate();
+
       // Check if event details already exist
       const existingDetail = await prisma.event_details.findFirst({ where: { event_id: eventId } });
       const dataDetails = {
         event_id: eventId,
-        event_date: new Date(date),
-        start_time: new Date(`${date}T${startTime}:00.000Z`),
-        end_time: new Date(`${date}T${endTime}:00.000Z`),
+        event_date: eventDateMoment,
+        start_time: startTimeMoment,
+        end_time: endTimeMoment,
         event_type: eventType,
         event_location: eventType === 'in-person' ? eventLocation : null,
         postal_code: postalCode,
