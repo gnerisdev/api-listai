@@ -8,7 +8,6 @@ async function main() {
       data: {
         percentage_gift: 15,
         color: '#1d314c',
-        secondaryColor: '#432070'
       }
     });
 
