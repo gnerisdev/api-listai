@@ -62,6 +62,7 @@ router.put('/event/:event_id/settings', userAuthMiddleware, eventSettingsControl
 // Event Gallery Routes
 router.post('/event-gallery/:event_id', userAuthMiddleware, upload.single('file'), galleryController.addMedia);
 router.get('/event-gallery/:event_id', userAuthMiddleware, galleryController.getGallery);
+router.delete('/event-gallery/:event_id/media/:media_id', userAuthMiddleware, galleryController.removeMedia);
 
 // Services Routes
 router.get('/events/:event_id/services', userAuthMiddleware, servicesController.getServices);

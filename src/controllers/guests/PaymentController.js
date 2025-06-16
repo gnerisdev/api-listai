@@ -1,17 +1,32 @@
 import prisma from '#prisma';
+import moment from 'moment-timezone';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { MercadoPagoService } from '../../services/MercadoPagoService.js';
+import { MathUtils } from '../../utils/MathUtils.js';
 
 class PaymentController {
   async initiatePayment(req, res) {
     try {
-      const { items, guestContact, guestName, eventId } = req.body;
+      const { items, email, name, eventId } = req.body;
 
-      // Get gifts
-      const eventGifts = await prisma.event_gifts.findMany({
-        where: { event_id: eventId, gift_id: { in: items.map(item => item.id) } },
-        include: { gift: true }
-      });
+      if (items.length <= 0) {
+         return res.status(400).json({ 
+          success: false,
+          message: 'Carrinho vazio!' 
+        });
+      }
+
+      // Get gifts and settings
+      const [eventGifts, settings] = await Promise.all([
+        prisma.event_gifts.findMany({
+          where: { 
+            event_id: eventId, 
+            gift_id: { in: items.map(item => item.id) },
+          },
+          include: { gift: true, event: { select: { slug: true } } }
+        }),
+        prisma.settings.findFirst({ select: { percentage_gift: true } })
+      ]);
 
       const gifts = eventGifts.map(eventGift => {
         const gift = eventGift.gift;
@@ -19,8 +34,23 @@ class PaymentController {
         return { ...gift, quantity: current.quantity };
       });
 
+      const giftIds = gifts.map(item => item.id);
+      if (giftIds.length !== giftIds.length) {
+        return res.status(400).json({
+          success: false,
+          message: 'Erro ao calcular transação.'
+        });
+      }
+
       // Get total
+      const percentage = settings.percentage_gift;
+
       const total = gifts.reduce((prev, current) => {
+        const priceWithPercentage = MathUtils.addPercentage(current.price, percentage);
+        return prev += (priceWithPercentage * current.quantity);
+      }, 0);
+
+      const userAmount = gifts.reduce((prev, current) => {
         return prev += (current.price * current.quantity);
       }, 0);
 
@@ -30,71 +60,64 @@ class PaymentController {
           message: 'Erro ao calcular o total da transição.' 
         });
       }
+      
+      // Create transaction 
+      let reference;
 
-      // Calculate Values
-      const systemFee = Math.round(total * 0.10 * 100) / 100;
-      const transactionFee = Math.round(total * 0.05 * 100) / 100;
-      const userAmount = Math.round((total - systemFee - transactionFee) * 100) / 100;
-
-      // Create transition
-      let eventGiftTransactions;
-      await prisma.$transaction(async () => {
-        eventGiftTransactions = await prisma.event_gift_transactions.create({
+      await prisma.$transaction(async (tx) => {
+        const eventGiftTransaction = await tx.event_gift_transactions.create({
           data: {
-            guest_name: guestName,
-            guest_contact: guestContact,
+            guest_contact: '',
+            guest_name: name,
+            guest_email: email,
             event_id: eventId,
             total_price: total,
-            transaction_fee: transactionFee,
-            system_fee: systemFee,
             user_amount: userAmount,
+            percentage: percentage,
             reference: '',
-            status: 'PENDING'
-          }
+            status: 'PENDING',
+            created_at: moment().tz('America/Sao_Paulo').toISOString(),
+          },
         });
 
-        await prisma.event_gift_transaction_items.createMany({
-          data: gifts.map(gift => ({
-            event_gift_transaction_id: eventGiftTransactions.id,
-            gift_id: gift.id,
-            quantity: gift.quantity,
-            gift_name: gift.name,
-            unit_price: gift.price
-          }))
+        // Update reference
+        reference = `guest_transaction_${eventGiftTransaction.id}`;
+        await tx.event_gift_transactions.update({
+          where: { id: eventGiftTransaction.id },
+          data: { reference: reference },
         });
-      });
 
-      if (!eventGiftTransactions) {
-        return res.status(200).json({ success: false, message: 'Erro ao gerar transição.' });
-      }
-
-      // Reference
-      const reference = `guest_transition_${eventGiftTransactions.id}`;
-      await prisma.event_gift_transactions.update({
-        where: { id: eventGiftTransactions.id },
-        data: { reference }
+        // Update gifts unavailable
+        await tx.event_gifts.updateMany({
+          where: { gift_id: { in: giftIds } },
+          data: { is_available: false },
+        });
       });
 
       // Generate Preference Mercado Livre
       const mpItems = gifts?.map(item => ({
+        id: item.id,
         title: item.name,
         description: item.description,
-        unit_price: item.price,
+        unit_price: MathUtils.addPercentage(item.price, percentage),
         picture_url: item?.image_url,
         quantity: item.quantity,
         currency_id: 'BRL'
       }));
 
       const mercadoPagoService = new MercadoPagoService();
+
       const preference = await mercadoPagoService.getPreference({
         items: mpItems,
+        payer: { email, first_name: name },
         back_urls: {
-          success: 'https://localhost:3001/users/service-package',
-          failure: 'http://localhost:3001/users/service-package',
-          pending: 'http://localhost:3001/users/service-package'
+          success: `https://site.listai.com.br/page/checkout-success/${eventGifts[0].event.slug}`,
+          failure: `https://site.listai.com.br/page/checkout-success`,
+          pending: `https://site.listai.com.br/page/checkout-success`
         },
         external_reference: reference,
-        auto_return: 'approved'
+        auto_return: 'approved',
+        binary_mode: true
       });
 
       return res.status(200).json({ success: true, paymentLink: preference.init_point });
@@ -103,10 +126,6 @@ class PaymentController {
       LogUtils.errorLogger(error);
       return res.status(500).json({ success: false, message: 'Erro ao serviços' });
     }
-  }
-
-  async refreshPaymentStatus(req, res) {
-
   }
 }
 

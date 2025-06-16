@@ -36,4 +36,13 @@ export class MercadoPagoService {
       throw error;
     }
   }
+
+  async getAllPayments(filters = {}) {
+    try {
+      const response = await mercadopago.payment.search({ qs: filters });
+      return response.body.results;
+    } catch (error) {
+      throw error;
+    }
+  }
 }

@@ -101,5 +101,6 @@ router.get('/dashboard/retrieve', adminAuthMiddleware, dashboardController.retri
 // Settings
 router.get('/settings', adminAuthMiddleware, settingsController.getSettings);
 router.put('/settings', adminAuthMiddleware, settingsController.updateSettings);
+router.get('/settings/percentage-gift', adminAuthMiddleware, settingsController.getPercentageGift);
 
 export default router;

@@ -7,6 +7,13 @@ export class MathUtils {
     return decimalPercent.div(100).times(decimalTotal);
   }
 
+  static addPercentage(value, percent) {
+    const decimalValue = new Decimal(value);
+    const decimalPercent = new Decimal(percent);
+    const factor = decimalPercent.div(100).plus(1);
+    return decimalValue.times(factor).toNumber();
+  }
+
   // Aplica o desconto do sistema (10%)
   static applySystemDiscount(value) {
     const decimalValue = new Decimal(value);

@@ -12,7 +12,6 @@ class SettingsController {
         settings: FormatUtils.toCamelCase(settings)
       });
     } catch (error) {
-      console.log(error)
       LogUtils.errorLogger(error);
       return res.status(400).json({ success: false, message: 'Erro ao buscar configurações.' });
     }
@@ -52,11 +51,23 @@ class SettingsController {
         settings: FormatUtils.toCamelCase(settings)
       });
     } catch (error) {
-      console.log(error)
       LogUtils.errorLogger(error);
       return res.status(400).json({ success: false, message: 'Erro ao atualizar configurações.' });
     }
   }
+
+  async getPercentageGift(req, res) {
+    try {
+      const settings = await prisma.settings.findFirst({ select: { percentage_gift: true } });
+      return res.status(200).json({ 
+        success: true, 
+        percentageGift: settings.percentage_gift 
+      });
+    } catch (error) {
+      LogUtils.errorLogger(error);
+      return res.status(400).json({ success: false, message: 'Erro ao buscar porcentagem de presente.' });
+    }
+  } 
 }
 
 export default SettingsController;

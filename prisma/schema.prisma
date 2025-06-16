@@ -77,6 +77,7 @@ model event_gifts {
   created_at DateTime  @default(now())
   updated_at DateTime? @updatedAt
   deleted_at DateTime?
+  is_available Boolean @default(true)
 
   event events @relation(fields: [event_id], references: [id])
   gift  gifts  @relation(fields: [gift_id], references: [id])
@@ -267,15 +268,15 @@ model event_gift_transactions {
   id       Int @id @default(autoincrement())
   event_id Int
 
-  guest_name      String
-  guest_contact   String
-  total_price     Float
-  user_amount     Float?
-  system_fee      Float?
-  transaction_fee Float?
-  created_at      DateTime         @default(now())
-  reference       String
-  status          TransitionStatus @default(PENDING)
+  guest_email   String?
+  guest_name    String
+  guest_contact String?
+  total_price   Float
+  user_amount   Float?
+  percentage    Int?
+  created_at    DateTime         @default(now())
+  reference     String
+  status        TransitionStatus @default(PENDING)
 
   event events                         @relation(fields: [event_id], references: [id])
   items event_gift_transaction_items[]
@@ -346,10 +347,10 @@ enum PayoutsStatus {
 }
 
 model settings {
-  id              Int @id @default(autoincrement())
-  percentage_gift Int @default(15)
-  color           String @default("#1d314c")
-  color_secondary String @default("#432070")
-  created_at      DateTime @default(now())
+  id              Int       @id @default(autoincrement())
+  percentage_gift Int       @default(15)
+  color           String    @default("#1d314c")
+  color_secondary String    @default("#432070")
+  created_at      DateTime  @default(now())
   updated_at      DateTime? @updatedAt
 }

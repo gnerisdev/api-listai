@@ -175,6 +175,48 @@ class GalleryController {
       return res.status(500).json({ success: false, message: errorMessage });
     }
   }
+
+  async removeMedia(req, res) {
+    try {
+      const eventId = parseInt(req.params.event_id);
+      const userId = parseInt(req.headers['x-user-id']);
+      const mediaId = parseInt(req.params.media_id);  
+
+      // Permission
+      const event = await prisma.users_events.findFirst({
+        where: { user_id: userId, event_id: eventId },
+        include: { event: true },
+      });
+
+      if (!event) {
+        return res.status(404).json({ success: false, message: 'Evento não encontrado.' });
+      }
+
+      // Get media
+      const media = await prisma.event_gallery.findUnique({ where: { id: mediaId } });
+
+      // Delete media
+      if (media) {
+        const cloudinary = CloudinaryService.getInstance(Number(media.cdn));      
+        const publicId = CloudinaryService.getPublicId(media.url);
+        const response = await cloudinary.uploader.destroy(publicId, { resource_type: media.type });
+        console.log(response, media.cdn) 
+        if (response.result === 'ok') { 
+          await prisma.event_gallery.delete({ where: { id: mediaId } });
+        } else {
+          return res.status(500).json({ success: false, message: 'Erro ao remover a mídia.' });
+        }
+      }  
+
+      return res.status(200).json({ 
+        success: true,
+        message: 'Mídia removida com sucesso!'
+      });
+    } catch (error) {
+      LogUtils.errorLogger(error);
+      return res.status(500).json({ success: false, message: 'Erro ao remover a mídia.' });
+    }
+  }
 }
 
 export default GalleryController;

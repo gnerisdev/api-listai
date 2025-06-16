@@ -31,10 +31,10 @@ class Server {
   }
 
   route() {
-    this.app.use('/api/admin', adminRoutes);
-    this.app.use('/api/users', usersRoutes);
-    this.app.use('/api/guests', guestsRoutes);
-    this.app.use('/api/webhook', webhooksRoutes);
+    this.app.use('/admin', adminRoutes);
+    this.app.use('/users', usersRoutes);
+    this.app.use('/guests', guestsRoutes);
+    this.app.use('/webhook', webhooksRoutes);
   }
 }
 

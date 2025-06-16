@@ -1,23 +1,51 @@
 import prisma from '#prisma';
 import { FormatUtils } from '../../utils/FormatUtils.js';
 import { LogUtils } from '../../utils/LogUtils.js';
+import { MathUtils } from '../../utils/MathUtils.js';
 
 class EventController {
   async getEvent(req, res) {
     try {
       const slug = req.params.slug;  
-      const event = await prisma.events.findFirst({
-        where: { slug: slug, },
-        include: { 
-          event_gallery: true, 
-          event_details: true,
-          event_gifts: { include: { gift: true } }
-        },
-      });
 
+      // Get event e settings
+      const [event, settings] = await Promise.all([
+        prisma.events.findFirst({
+          where: { slug: slug, },
+          include: { 
+            event_gallery: true, 
+            event_details: true,
+            event_gifts: { include: { gift: true } },
+          },
+        }),
+        prisma.settings.findFirst()
+      ]);
+
+      // Verify event e settings
       if (!event) {
-        return res.status(404).json({ success: false, message: 'Evento não encontrado.' });
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Evento não encontrado.' 
+        });
       }
+
+      if (!settings) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Erro ao carregar Evento.' 
+        });
+      }
+
+      // Format data
+      const gifts = event.event_gifts;
+      const percentage = settings.percentage_gift;
+      const formatGifts = gifts.map(item => {
+        return {
+          ...item.gift,
+          is_available: item.is_available,
+          price: MathUtils.addPercentage(item.gift.price, percentage),
+        };
+      });
 
       const data = {
         id: event.id,
@@ -27,11 +55,11 @@ class EventController {
         titleDescription: event.title_description,
         description: event.description,
         color: event.color,
-        gifts: event.event_gifts.map(item => item.gift),
         gallery: event.event_gallery,
         details: event.event_details[0],
         bannerUrl: event.banner_url,
         avatarUrl: event.avatar_url,
+        gifts: formatGifts
       }
   
       return res.status(200).json({ 
@@ -40,6 +68,7 @@ class EventController {
         event: FormatUtils.toCamelCase(data)
       });
     } catch (error) {
+      console.log(error)
       LogUtils.errorLogger(error);
       return res.status(500).json({ success: false, message: 'Erro ao buscar evento.' });
     }
@@ -72,7 +101,6 @@ class EventController {
   
       return res.status(200).json({ success: true, message: 'Mensagem enviada com sucesso.' });
     } catch (error) {
-      console.log(error)
       LogUtils.errorLogger(error);
       return res.status(500).json({ success: false, message: 'Erro ao enviar mensagem.' });
     }
@@ -103,8 +131,7 @@ class EventController {
         last_name: lastName, 
         phone_number: phoneNumber,
         email, 
-      },
-      });
+      }});
   
       return res.status(200).json({ success: true, message: 'Presença confirmada com sucesso.' });
     } catch (error) {
