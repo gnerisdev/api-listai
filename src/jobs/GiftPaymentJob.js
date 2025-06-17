@@ -7,7 +7,9 @@ const mercadoPagoService = new MercadoPagoService();
 const emailService = new EmailService();
 
 export function paymentStatusJob() {
-  cron.schedule('*/30 * * * *', async () => {
+  cron.schedule('*/25 * * * *', async () => {
+    console.log('Job Payments Mercado Livre');
+    
     const pendingTransactions = await prisma.event_gift_transactions.findMany({
       where: { status: 'PENDING' }
     });
