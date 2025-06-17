@@ -133,13 +133,27 @@ class EventController {
       if (!image) {
         return res.status(404).json({ success: false, message: "Imagem não encontrada." });
       }
+            
+      const cloudinary = CloudinaryService.getInstance(Number(imageCdn));   
 
-      const cloudinary = CloudinaryService.getInstance();
-      
       // Delete image
       if (imageUrl) {
+        if (!imageCdn) { 
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Dados da imagem não encontrados ou incompletos.' 
+          });
+        }
+
         const publicId = CloudinaryService.getPublicId(imageUrl);
-        await cloudinary.uploader.destroy(publicId);
+        const response = await cloudinary.uploader.destroy(publicId, { resource_type:  'image' });
+
+        if (response.result !== 'ok') { 
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Erro ao atualizar imagem.' 
+          });
+        }
       }
       
       // Upload new image
@@ -152,7 +166,7 @@ class EventController {
       }
       
       imageUrl = resultUpload.secure_url;
-      imageCdn = CloudinaryService.getAccountIndexOfWeek();
+      imageCdn = imageCdn || CloudinaryService.getAccountIndexOfWeek();
 
       // Update event
       await prisma.events.update({

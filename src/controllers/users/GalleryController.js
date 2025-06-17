@@ -200,7 +200,7 @@ class GalleryController {
         const cloudinary = CloudinaryService.getInstance(Number(media.cdn));      
         const publicId = CloudinaryService.getPublicId(media.url);
         const response = await cloudinary.uploader.destroy(publicId, { resource_type: media.type });
-        console.log(response, media.cdn) 
+
         if (response.result === 'ok') { 
           await prisma.event_gallery.delete({ where: { id: mediaId } });
         } else {

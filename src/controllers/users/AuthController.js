@@ -36,6 +36,15 @@ class AuthController {
         });
       }
 
+      if (data.suggestions?.length > 10) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Você só pode criar até 10 sugestões de presentes.' 
+        });
+      }
+
+      console.log(data.suggestions)
+
       const result = await prisma.$transaction(async (prisma) => {
         // Verify email and slug
         const { email, slug } = data;
@@ -75,6 +84,18 @@ class AuthController {
 
         // Link the user and event
         await prisma.users_events.create({ data: { user_id: user.id, event_id: event.id } });
+        
+        // Create Suggestions
+        if (data.suggestions?.length > 0) {
+          await prisma.gift_suggestions.createMany({ 
+            data: data.suggestions.map(item => ({  
+              title: item.title.trim(),
+              description: item.description?.trim(),
+              user_id: user.id, 
+              event_id: event.id
+             })) 
+          });
+        }
 
         // Associating multiple gifts from giftList
         if (Array.isArray(data.giftList) && data.giftList.length > 0) {
@@ -89,7 +110,7 @@ class AuthController {
         const token = jwt.sign(
           { id: user.id, email: user.email },
           TOKEN_KEY,
-          { expiresIn: '1d' }
+          { expiresIn: '30d' }
         );
   
         return res.status(200).json({

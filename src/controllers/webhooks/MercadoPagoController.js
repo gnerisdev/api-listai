@@ -23,12 +23,16 @@ class MercadoPagoController {
   }
 
   async GiftPayment(payment) {
-    if (!payment?.status) continue;
-
     if (payment.status === 'approved') {
       try {
+        const transaction = await prisma.event_gift_transactions.findUnique({
+          where: { reference: payment.external_reference },
+        });
+
+        if (!transaction || transaction.status === 'APPROVED') return;
+
         const transactionItemsData = payment.additional_info.items.map(mpItem => ({
-          event_gift_transaction_id: item.id,
+          event_gift_transaction_id: transaction.id,
           gift_id: Number(mpItem.id),
           quantity: Number(mpItem.quantity),
           gift_name: mpItem.title,
@@ -59,7 +63,7 @@ class MercadoPagoController {
       } catch (error) {
         console.error(`Erro ao processar transação para ID ${item.id}:`, error);
       }
-    } else if (transition.status === 'rejected') {
+    } else if (payment.status === 'rejected') {
       await prisma.$transaction(async (tx) => {
         await tx.event_gift_transactions.update({
           where: { id: item.id },
@@ -67,7 +71,7 @@ class MercadoPagoController {
         });
 
         // Update gifts available
-        const giftIds = transition.additional_info.items.map(item => item.id);
+        const giftIds = payment.additional_info.items.map(item => item.id);
         await tx.event_gifts.updateMany({
           where: { id: { in: giftIds } },
           data: { is_available: true },

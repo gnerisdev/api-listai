@@ -72,12 +72,12 @@ model events {
 }
 
 model event_gifts {
-  event_id   Int
-  gift_id    Int
-  created_at DateTime  @default(now())
-  updated_at DateTime? @updatedAt
-  deleted_at DateTime?
-  is_available Boolean @default(true)
+  event_id     Int
+  gift_id      Int
+  created_at   DateTime  @default(now())
+  updated_at   DateTime? @updatedAt
+  deleted_at   DateTime?
+  is_available Boolean   @default(true)
 
   event events @relation(fields: [event_id], references: [id])
   gift  gifts  @relation(fields: [gift_id], references: [id])
@@ -177,7 +177,7 @@ model gift_suggestions {
   id          Int       @id @default(autoincrement())
   user_id     Int
   event_id    Int
-  title       String
+  title       String    @db.VarChar(150)
   description String?   @db.VarChar(500)
   created_at  DateTime  @default(now())
   updated_at  DateTime? @updatedAt

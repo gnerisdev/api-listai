@@ -12,6 +12,7 @@ import ServicesController from '../controllers/users/ServicesController.js';
 import EventGuestsController from '../controllers/users/EventGuestsController.js';
 import EventMessagesController from '../controllers/users/EventMessagesController.js';
 import GiftsReceivedController from '../controllers/users/GiftsReceivedController.js';
+import DashboardController from '../controllers/users/DashboardController.js';
 
 const router = Router();
 const upload = multer({ dest: 'tmp/' });
@@ -26,6 +27,7 @@ const servicesController = new ServicesController();
 const eventGuestsController = new EventGuestsController();
 const eventMessagesController = new EventMessagesController();
 const giftsReceivedController = new GiftsReceivedController();
+const dashboardController = new DashboardController();
 
 // Authentication Routes
 router.post('/register', authController.register);
@@ -83,5 +85,8 @@ router.delete('/messages/:event_id/:message_id', userAuthMiddleware, eventMessag
 router.get('/events/:event_id/received-gifts', userAuthMiddleware, giftsReceivedController.getReceived);
 router.get('/events/:event_id/transactions', userAuthMiddleware, giftsReceivedController.getTransactions);
 router.get('/events/:event_id/payout-requests', userAuthMiddleware, giftsReceivedController.createPayoutRequest);
+
+// Dashboard
+router.get('/event/:event_id/dashboard/retrieve', userAuthMiddleware, dashboardController.retrieveEventData);
 
 export default router;

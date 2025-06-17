@@ -122,13 +122,28 @@ class EventTypesController {
       let imageUrl = existingEventType.image_url;
       let imageCdn = existingEventType.image_cdn;
   
-      if (image) {
-        const cloudinary = CloudinaryService.getInstance();
-  
+      if (image) {  
+        if (!imageUrl || !imageCdn) { 
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Dados da imagem não encontrados ou incompletos.' 
+          });
+        }
+
+        const cloudinary = CloudinaryService.getInstance(Number(imageCdn));
+
         // Delete image
         if (imageUrl) {
           const publicId = CloudinaryService.getPublicId(imageUrl);
-          await cloudinary.uploader.destroy(publicId);
+          const response = await cloudinary.uploader.destroy(publicId, { resource_type:  'image' });
+
+          console.log(response, publicId)
+          if (response.result !== 'ok') { 
+            return res.status(500).json({ 
+              success: false, 
+              message: 'Erro ao atualizar imagem.' 
+            });
+          }
         }
   
         // Upload new image
@@ -136,12 +151,11 @@ class EventTypesController {
         if (!resultUpload.secure_url) {
           return res.status(400).json({ 
             success: false, 
-            message: 'Falha ao criar atualizar devido a um erro no envio da imagem.' 
+            message: 'Falha ao atualizar devido a um erro no envio da imagem.' 
           });
         }
   
         imageUrl = resultUpload.secure_url;
-        imageCdn = CloudinaryService.getAccountIndexOfWeek();
       }
   
       // Update event type
@@ -161,6 +175,7 @@ class EventTypesController {
         eventType: FormatUtils.toCamelCase(updatedEventType)
       });
     } catch (error) {
+      console.log(error)
       LogUtils.errorLogger(error);
       return res.status(400).json({
         success: false,

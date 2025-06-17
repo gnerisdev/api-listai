@@ -1,5 +1,3 @@
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
 import { v2 as cloudinary } from 'cloudinary';
 import {
   CLOUDINARY_NAME_1, CLOUDINARY_KEY_1, CLOUDINARY_SECRET_1,
@@ -30,28 +28,35 @@ const cloudinaryAccounts = [
     api_secret: CLOUDINARY_SECRET_4,
   },
 ];
+
 export class CloudinaryService {
-  static cachedWeekIndex = null;
-  static configured = false;
+  static instances = new Map();
 
   static getCloudinaryAccountByWeek() {
     const today = new Date();
     const weekOfMonth = Math.ceil(today.getDate() / 7);
-    let index = (weekOfMonth - 1) % cloudinaryAccounts.length;
+    const index = (weekOfMonth - 1) % cloudinaryAccounts.length;
     return index;
   }
 
   static getInstance(cdnIndex) {
-    const index = cdnIndex || this.getCloudinaryAccountByWeek();
-    const account = cloudinaryAccounts[index];
+    const index = cdnIndex ?? this.getCloudinaryAccountByWeek();
 
-    cloudinary.config({
+    // Se já tiver instância configurada, retorna
+    if (this.instances.has(index)) {
+      return this.instances.get(index);
+    }
+
+    const account = cloudinaryAccounts[index];
+    const newInstance = cloudinary;
+    newInstance.config({
       cloud_name: account.cloud_name,
       api_key: account.api_key,
       api_secret: account.api_secret,
     });
 
-    return cloudinary;
+    this.instances.set(index, newInstance);
+    return newInstance;
   }
 
   static getAccountIndexOfWeek() {
@@ -60,8 +65,7 @@ export class CloudinaryService {
 
   static getPublicId(url) {
     const parsedUrl = url.split('/');
-    const publicIdWithExt = parsedUrl[parsedUrl.length - 1];    
+    const publicIdWithExt = parsedUrl[parsedUrl.length - 1];
     return publicIdWithExt.replace(/\.[^/.]+$/, '');
   }
 }
-

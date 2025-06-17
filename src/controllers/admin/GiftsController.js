@@ -2,29 +2,47 @@ import prisma from '#prisma';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { FormatUtils } from '../../utils/FormatUtils.js';
 import { CloudinaryService } from '../../services/CloudinaryServices.js';
+import { MathUtils } from '../../utils/MathUtils.js';
 
 class GiftsController {
   async getGiftsByCategory(req, res) {
     try {
-      const giftsRaw = await prisma.event_types.findMany({
-        where: { deleted_at: null },
-        orderBy: { created_at: 'desc' },
-        include: {
-          event_categories: {
-            where: { deleted_at: null },
-            orderBy: { created_at: 'desc' },
-            include: { gifts: true },
+      const [giftsRaw, settings] = await Promise.all([
+        prisma.event_types.findMany({
+          where: { deleted_at: null },
+          orderBy: { created_at: 'desc' },
+          include: {
+            event_categories: {
+              where: { deleted_at: null },
+              orderBy: { created_at: 'desc' },
+              include: { gifts: true },
+            },
           },
-        },
-      });
+        }),
+        prisma.settings.findFirst({ select: { percentage_gift: true } })
+      ]);
 
-      const gifts = giftsRaw.filter((type) =>
-        type.event_categories.some((category) => category.gifts.length > 0)
-      );
+      const percentage = settings.percentage_gift;
+
+      // Adiciona novo campo a cada gift
+      const gifts = giftsRaw
+        .map((type) => {
+          const updatedCategories = type.event_categories.map((category) => {
+            const updatedGifts = category.gifts.map((gift) => ({
+              ...gift,
+              pricePercentage: MathUtils.addPercentage(gift.price, percentage),
+            }));
+
+            return { ...category, gifts: updatedGifts };
+          });
+
+          return { ...type, event_categories: updatedCategories };
+        })
+        .filter((type) => type.event_categories.some((category) => category.gifts.length > 0));
 
       return res.status(200).json({
         success: true,
-        giftsByCategory: FormatUtils.toCamelCase(gifts)
+        giftsByCategory: FormatUtils.toCamelCase(gifts),
       });
     } catch (error) {
       LogUtils.errorLogger(error);
@@ -147,12 +165,26 @@ class GiftsController {
       let imageCdn = giftExists.image_cdn;
         
       if (image) {
-        const cloudinary = CloudinaryService.getInstance();
+        if (!imageUrl || !imageCdn) { 
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Dados da imagem não encontrados ou incompletos.' 
+          });
+        }
+
+        const cloudinary = CloudinaryService.getInstance(Number(imageCdn));
       
         // Delete image
         if (imageUrl) {
           const publicId = CloudinaryService.getPublicId(imageUrl);
-          await cloudinary.uploader.destroy(publicId);
+          const response = await cloudinary.uploader.destroy(publicId, { resource_type:  'image' });
+
+          if (response.result !== 'ok') { 
+            return res.status(500).json({ 
+              success: false, 
+              message: 'Erro ao atualizar imagem.' 
+            });
+          }
         }
         
         // Upload new image
@@ -165,7 +197,6 @@ class GiftsController {
         }
         
         imageUrl = resultUpload.secure_url;
-        imageCdn = CloudinaryService.getAccountIndexOfWeek();
       }  
 
       // Update gift
@@ -199,6 +230,55 @@ class GiftsController {
     catch (error) {
       LogUtils.errorLogger(error);
       res.status(400).json({ success: false, message: 'Erro ao deletar o gift' });
+    }
+  }
+
+  async linkGiftToEvent(req, res) {
+    try {
+      const { giftId, eventId } = req.body;
+      const messages = [];
+
+      if (!giftId || isNaN(Number(giftId))) {
+        messages.push('"ID do presente" é obrigatório e deve ser um número válido.');
+      }
+
+      if (!eventId || isNaN(Number(eventId))) {
+        messages.push('"ID do evento" é obrigatório e deve ser um número válido.');
+      }
+
+      if (messages.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: messages.map(msg => `• ${msg}`).join('\n<br>'),
+        });
+      }
+
+      // Verificações de existência
+      const giftExists = await prisma.gifts.findUnique({ where: { id: Number(giftId) } });
+      if (!giftExists) {
+        return res.status(404).json({ success: false, message: 'Presente não encontrado.' });
+      }
+
+      const eventExists = await prisma.events.findUnique({ where: { id: Number(eventId) } });
+      if (!eventExists) {
+        return res.status(404).json({ success: false, message: 'Evento não encontrado.' });
+      }
+
+      // Relacionamento (ajuste conforme estrutura)
+      await prisma.event_gifts.create({
+        data: { gift_id: Number(giftId), event_id: Number(eventId) },
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: 'Presente vinculado ao evento com sucesso.',
+      });
+    } catch (error) {
+      LogUtils.errorLogger(error);
+      return res.status(400).json({
+        success: false,
+        message: 'Erro ao vincular presente ao evento.',
+      });
     }
   }
 }

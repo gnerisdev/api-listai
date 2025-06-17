@@ -34,9 +34,12 @@ export function confirmationGiftTemplate(
               </tr>
               <tr>
                 <td style="padding: 30px;">
-                  <p>Olá, ${data.clientName}!</p>
-                  <p>O seu presente foi aprovado e será enviado em breve. Abaixo os detalhes:</p>
+                  <p>Olá!</p>
+                  <p>
+                    Passando para confirmar o seu presente!
+                  </p>
 
+                  <strong>Detalhes:</detalhes>
                   <table width="100%" style="margin-top: 20px;">
                     ${giftListHtml}
                     <tr>
