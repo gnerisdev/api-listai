@@ -15,7 +15,7 @@ class EventController {
           include: { 
             event_gallery: true, 
             event_details: true,
-            event_gifts: { include: { gift: true } },
+            event_gifts: { select: { is_available: true, gift: true } },
           },
         }),
         prisma.settings.findFirst()
@@ -69,7 +69,7 @@ class EventController {
       });
     } catch (error) {
       console.log(error)
-      LogUtils.errorLogger(error);
+      LogUtils.errorLogger(error, 'Erro ao buscar evento.');
       return res.status(500).json({ success: false, message: 'Erro ao buscar evento.' });
     }
   }
@@ -101,7 +101,10 @@ class EventController {
   
       return res.status(200).json({ success: true, message: 'Mensagem enviada com sucesso.' });
     } catch (error) {
-      LogUtils.errorLogger(error);
+      LogUtils.errorLogger(
+        error, 
+        `Erro ao enviar recado para o evento de ID: ${req.params.event_id || 'Desconhecido'}`
+      );
       return res.status(500).json({ success: false, message: 'Erro ao enviar mensagem.' });
     }
   }
@@ -135,7 +138,10 @@ class EventController {
   
       return res.status(200).json({ success: true, message: 'Presença confirmada com sucesso.' });
     } catch (error) {
-      LogUtils.errorLogger(error);
+      LogUtils.errorLogger(
+        error, 
+        `Erro ao confirmar presença recado para o evento de ID: ${req.params.event_id || 'Desconhecido'}`
+      );
       return res.status(500).json({ success: false, message: 'Erro ao confirmar presença.' });
     }
   }  

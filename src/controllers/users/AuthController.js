@@ -28,6 +28,8 @@ class AuthController {
       if (validationEmail !== true) messages.push(validationEmail);
       if (validationPhoneNumber !== true) messages.push(validationPhoneNumber);
       if (validationPassword !== true) messages.push(validationPassword);
+      if (!data.giftDeliveryPreference) messages
+        .push('Escolha a melhor forma para você receber os presentes.');
 
       if (messages.length) {
         return res.status(400).json({
@@ -42,8 +44,6 @@ class AuthController {
           message: 'Você só pode criar até 10 sugestões de presentes.' 
         });
       }
-
-      console.log(data.suggestions)
 
       const result = await prisma.$transaction(async (prisma) => {
         // Verify email and slug
@@ -78,7 +78,8 @@ class AuthController {
             title: data.title,
             subtitle: data.subtitle,
             slug: data.slug,
-            event_category_id: Number(data.event)
+            event_category_id: Number(data.event),
+            gift_delivery_preference: data.giftDeliveryPreference
           },
         });
 

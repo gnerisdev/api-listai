@@ -36,27 +36,28 @@ model users {
 }
 
 model events {
-  id                       Int       @id @default(autoincrement())
+  id                       Int                    @id @default(autoincrement())
   title                    String
   subtitle                 String
-  slug                     String    @unique
-  description              String?   @db.VarChar(1500)
+  slug                     String                 @unique
+  description              String?                @db.VarChar(1500)
   title_description        String?
-  color                    String    @default("#432070")
-  active                   Boolean   @default(true)
+  color                    String                 @default("#432070")
+  active                   Boolean                @default(true)
   avatar_url               String?
   avatar_cdn               String?
   banner_url               String?
   banner_cdn               String?
   password                 String?
   event_category_id        Int
-  show_gift_list           Boolean   @default(true)
-  show_guest_messages      Boolean   @default(true)
-  show_event_info          Boolean   @default(true)
-  allow_guest_confirmation Boolean   @default(true)
-  created_at               DateTime  @default(now())
+  show_gift_list           Boolean                @default(true)
+  show_guest_messages      Boolean                @default(true)
+  show_event_info          Boolean                @default(true)
+  allow_guest_confirmation Boolean                @default(true)
+  gift_delivery_preference GiftDeliveryPreference @default(cash)
+  created_at               DateTime               @default(now())
   total_payout_received    Float?
-  updated_at               DateTime? @updatedAt
+  updated_at               DateTime?              @updatedAt
 
   users                      users_events[]               @relation("UserEvents")
   event_details              event_details[]
@@ -69,6 +70,12 @@ model events {
   event_gift_transactions    event_gift_transactions[]
   payouts                    payout_requests[]
   event_service_transactions event_service_transactions[]
+}
+
+enum GiftDeliveryPreference {
+  weekOfParty
+  weekAfterParty
+  cash
 }
 
 model event_gifts {

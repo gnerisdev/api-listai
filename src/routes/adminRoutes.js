@@ -3,7 +3,6 @@ import multer from 'multer';
 import adminAuthMiddleware from '../middleware/adminAuthMiddleware.js';
 import GiftsController from '../controllers/admin/GiftsController.js';
 import AuthController from '../controllers/admin/AuthController.js';
-import GuestController from '../controllers/admin/GuestController.js';
 import ManageUsersController from '../controllers/admin/ManageUsersController.js';
 import EventsController from '../controllers/admin/EventsController.js';
 import AdminController from '../controllers/admin/AdminController.js';
@@ -17,6 +16,9 @@ import PayoutsController from '../controllers/admin/PayoutsController.js';
 import DashboardController from '../controllers/admin/DashboardController.js';
 import EventServicesController from '../controllers/admin/EventServicesController.js';
 import SettingsController from '../controllers/admin/SettingsController.js'; 
+import TransactionsController from '../controllers/admin/TransactionsController.js'; 
+import LogController from '../controllers/admin/LogController.js';
+import GiftSuggestionsController from '../controllers/admin/GiftSuggestionsController.js';
 
 const router = Router();
 const upload = multer({ dest: 'tmp/' });
@@ -25,21 +27,24 @@ const manageUsersController = new ManageUsersController();
 const eventsController = new EventsController();
 const authController = new AuthController();
 const adminController = new AdminController();
-const guestController = new GuestController();
 const eventTypesController = new EventTypesController();
 const eventCategoriesController = new EventCategoriesController();
 const servicesController = new ServicesController();
 const eventGuestsController = new EventGuestsController();
 const eventMessagesController = new EventMessagesController();
 const eventGiftsReceivedController = new EventGiftsReceivedController();
+const giftSuggestionsController = new GiftSuggestionsController();
 const payoutsController = new PayoutsController();
 const dashboardController = new DashboardController();
 const eventServicesController = new EventServicesController();
 const settingsController = new SettingsController();
+const transactionsController = new TransactionsController();
+const logController = new LogController();
 
+// Log Error
+router.get('/logs/error.txt', logController.exportErrorLog);
 // Public Routes
 router.post('/login', authController.login);
-
 // Protected Routes
 router.get('/me', adminAuthMiddleware, adminController.fetchAdmin);
 // Admin
@@ -87,6 +92,9 @@ router.post('/gifts', adminAuthMiddleware, upload.single('image'), giftsControll
 router.put('/gifts/:id', adminAuthMiddleware,  upload.single('image'), giftsController.updateGift);
 router.delete('/gifts/:id', adminAuthMiddleware, giftsController.removeGift);
 router.post('/gifts/link-to-event', adminAuthMiddleware, giftsController.linkGiftToEvent);
+// Gift Suggestions
+router.get('/gift-suggestions', adminAuthMiddleware, giftSuggestionsController.getSuggestions);
+router.delete('/gift-suggestions/:id', adminAuthMiddleware, giftSuggestionsController.removeSuggestions);
 // Services
 router.get('/services', adminAuthMiddleware, servicesController.getServices);
 router.get('/services/types', adminAuthMiddleware, servicesController.getServiceTypes);
@@ -97,6 +105,10 @@ router.delete('/services/:service_id', adminAuthMiddleware, servicesController.r
 // Payouts
 router.get('/payouts', adminAuthMiddleware, payoutsController.getPayouts);
 router.put('/payouts/:id/conclude', payoutsController.concludePayout);
+// Transactions
+router.get('/transactions', adminAuthMiddleware, transactionsController.getTransactions);
+router.put('/transactions/:id/status', transactionsController.changeStatus);
+router.get('/transactions/:id/info', transactionsController.getInfoPayment);
 // Dashboard
 router.get('/dashboard/retrieve', adminAuthMiddleware, dashboardController.retrieveEventData);
 // Settings

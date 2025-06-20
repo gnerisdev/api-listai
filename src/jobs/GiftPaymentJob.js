@@ -1,5 +1,5 @@
-import cron from 'node-cron';
 import prisma from '#prisma';
+import cron from 'node-cron';
 import { MercadoPagoService } from '../services/MercadoPagoService.js';
 import { EmailService } from '../services/EmailService.js';
 
@@ -8,8 +8,8 @@ const emailService = new EmailService();
 
 export function paymentStatusJob() {
   cron.schedule('*/25 * * * *', async () => {
-    console.log('Job Payments Mercado Livre');
-    
+    console.log('** Atualizar status de pagamento MP');
+
     const pendingTransactions = await prisma.event_gift_transactions.findMany({
       where: { status: 'PENDING' }
     });
@@ -46,9 +46,9 @@ export function paymentStatusJob() {
               // Notify client
               emailService.confirmationGift(
                 { to: item.guest_email, subject: 'Presente confirmado!' },
-                { 
-                  name: item.guest_name, 
-                  email: item.guest_email, 
+                {
+                  name: item.guest_name,
+                  email: item.guest_email,
                   items: transactionItemsData,
                   totalValue: item.total_price
                 }
