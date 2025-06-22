@@ -122,7 +122,7 @@ class AuthController {
         });      
       });
     } catch (error) {
-      console.log(error);
+      LogUtils.errorLogger(error, 'Erro ao fazer cadastro');
       return res.status(400).json({ success: false, message: `Erro ao fazer cadastro.` });
     }
   }
