@@ -204,6 +204,7 @@ model event_guests {
   phone_number String
   event_id     Int
   confirmed    Boolean  @default(false)
+  companions   Json?
   created_at   DateTime @default(now())
 
   event events @relation(fields: [event_id], references: [id])
