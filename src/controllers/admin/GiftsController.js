@@ -264,7 +264,7 @@ class GiftsController {
         return res.status(404).json({ success: false, message: 'Evento não encontrado.' });
       }
 
-      // Relacionamento (ajuste conforme estrutura)
+      // Relacionamento 
       await prisma.event_gifts.create({
         data: { gift_id: Number(giftId), event_id: Number(eventId) },
       });

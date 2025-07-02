@@ -6,7 +6,7 @@ import { EmailService } from '../services/EmailService.js';
 const mercadoPagoService = new MercadoPagoService();
 const emailService = new EmailService();
 
-export function paymentStatusJob() {
+export function paymentStatus() {
   cron.schedule('*/25 * * * *', async () => {
     console.log('** Atualizar status de pagamento MP');
 

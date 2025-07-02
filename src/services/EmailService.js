@@ -38,4 +38,25 @@ export class EmailService {
       }
     });
   };
+
+  sendBackup = (filePath, filename, toEmail) => {
+    const data = {
+      from: `Lista - <${this.#userEmail}>`,
+      to: toEmail,
+      subject: `📦 Backup do banco de dados - ${filename}`,
+      text: 'Segue em anexo o backup automático do banco de dados.',
+      attachments: [{ filename, path: filePath }]
+    };
+
+    const transporter = this.getTransporter();
+
+    transporter.sendMail(data, function (error, info) {
+      if (error) {
+        console.log(error);
+        LogUtils.errorLogger(error, 'Erro ao enviar backup');
+      } else {
+        console.log('📧 Backup enviado com sucesso: ' + info.response);
+      }
+    });
+  };
 }

@@ -2,7 +2,6 @@ import prisma from '#prisma';
 import { FormatUtils } from '../../utils/FormatUtils.js';
 import { LogUtils } from '../../utils/LogUtils.js';
 import { MathUtils } from '../../utils/MathUtils.js';
-
 class EventController {
   async getEvent(req, res) {
     try {

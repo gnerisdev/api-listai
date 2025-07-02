@@ -14,9 +14,9 @@ export class LogUtils {
 
   static errorLogger(error, title = 'Erro no sistema') {
     const timestamp = moment().tz('America/Sao_Paulo').format('YYYY-MM-DD HH:mm:ss');
-
-    const message = error?.message || 'Mensagem de erro não disponível';
-    const stackLine = error?.stack?.split('\n')?.[1]?.trim() || 'Local do erro não identificado';
+    const stack = (error?.stack || error?.message || 'Erro desconhecido')
+      .replace(/\s+/g, ' ') 
+      .trim();
 
     const logMessage = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -25,9 +25,8 @@ export class LogUtils {
 📌 ${title}
 🕒 ${timestamp}
 
-📄 Detalhe técnico:
-${message}
-↪️ ${stackLine}
+🛠️ Detalhes técnicos:
+${stack}
 
 `.trimStart();
 

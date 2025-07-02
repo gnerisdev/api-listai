@@ -43,27 +43,27 @@ export class ValidationUtils {
   }
 
   static title(value) {
-    return value && value.length >= 5 && value.length <= 150
+    return value && value.length >= 2 && value.length <= 150
       ? true
-      : 'O título precisa ter no mínimo 5 caracteres e no máximo 150 caracteres.';
+      : 'Título deve ter entre 2 e 150 caracteres.';
   }
 
   static subtitle(value) {
-    return value && value.length >= 5 && value.length <= 150
+    return value && value.length >= 2 && value.length <= 250
       ? true
-      : 'O subtítulo precisa ter no mínimo 5 caracteres e no máximo 150 caracteres.';
+      : 'Subtítulo deve ter entre 2 e 250 caracteres.';
   }
 
   static titleDescription(value) {
-    return value && value.length >= 5 && value.length <= 150
+    return value && value.length >= 2 && value.length <= 150
       ? true
-      : 'A título da Introdução precisa ter no mínimo 5 caracteres e no máximo 150 caracteres.';
+      : 'Título da introdução deve ter entre 2 e 150 caracteres.';
   }
 
   static description(value) {
     return value && value.length >= 5 && value.length <= 1000
       ? true
-      : 'A Introdução precisa ter no mínimo 5 caracteres e no máximo 1000 caracteres.';
+       : 'Descrição deve ter entre 5 e 1000 caracteres.';
   }
  
   static string(value) {

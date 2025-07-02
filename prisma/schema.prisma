@@ -38,7 +38,7 @@ model users {
 model events {
   id                       Int                    @id @default(autoincrement())
   title                    String
-  subtitle                 String
+  subtitle                 String                 @db.VarChar(250)
   slug                     String                 @unique
   description              String?                @db.VarChar(1500)
   title_description        String?

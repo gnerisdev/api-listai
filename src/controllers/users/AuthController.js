@@ -16,6 +16,8 @@ class AuthController {
       if (!data.slug) messages.push('Url do evento é obrigatório.');
       if (!data.event) messages.push('Evento é obrigatório.');
 
+      const validationTitle = ValidationUtils.title(data.title);
+      const validationSubtitle = ValidationUtils.subtitle(data.subtitle);
       const validationFirstName = ValidationUtils.firstName(data.firstName);
       const validationLastName = ValidationUtils.lastName(data.lastName);
       const validationEmail = ValidationUtils.email(data.email);
@@ -23,6 +25,8 @@ class AuthController {
       const validationPassword = ValidationUtils.password(data.password);
       data.phoneNumber = data.phoneNumber.replace(/\D/g, '');
 
+      if (validationTitle !== true) messages.push(validationTitle);
+      if (validationSubtitle !== true) messages.push(validationSubtitle);
       if (validationFirstName !== true) messages.push(validationFirstName);
       if (validationLastName !== true) messages.push(validationLastName);
       if (validationEmail !== true) messages.push(validationEmail);
