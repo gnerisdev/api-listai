@@ -19,8 +19,9 @@ class SettingsController {
 
   async updateSettings(req, res) {
     try {
-      let { percentageGift, color, colorSecondary } = req.body;
+      let { percentageGift, color, colorSecondary, listCreationFee } = req.body;
       percentageGift = parseInt(percentageGift);
+      listCreationFee = parseFloat(listCreationFee);
 
       // Validation
       if (!percentageGift || !color || !colorSecondary) {
@@ -40,6 +41,7 @@ class SettingsController {
         where: { id: 1 },
         data: { 
           percentage_gift: percentageGift, 
+          list_creation_fee: listCreationFee,
           color: color,
           color_secondary: colorSecondary 
         },

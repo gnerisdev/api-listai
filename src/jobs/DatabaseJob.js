@@ -33,8 +33,7 @@ export function backup() {
         console.log(`✅ Backup criado: ${filename}`);
 
         const emailService = new EmailService();
-        // emailService.sendBackup(filepath, filename, 'contato@portoconect.com.br');
-        emailService.sendBackup(filepath, filename, 'gnerisdev@gmail.com');
+        emailService.sendBackup(filepath, filename, 'contato@portoconect.com.br');
       });
     } catch (error) {
       console.error(`❌ Erro no backup: ${error}`);

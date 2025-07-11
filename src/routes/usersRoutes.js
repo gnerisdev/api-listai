@@ -13,6 +13,7 @@ import EventGuestsController from '../controllers/users/EventGuestsController.js
 import EventMessagesController from '../controllers/users/EventMessagesController.js';
 import GiftsReceivedController from '../controllers/users/GiftsReceivedController.js';
 import DashboardController from '../controllers/users/DashboardController.js';
+import PreUserRequestsController from '../controllers/users/PreUserRequestsController.js';
 
 const router = Router();
 const upload = multer({ dest: 'tmp/' });
@@ -28,8 +29,13 @@ const eventGuestsController = new EventGuestsController();
 const eventMessagesController = new EventMessagesController();
 const giftsReceivedController = new GiftsReceivedController();
 const dashboardController = new DashboardController();
+const preUserRequestsController = new PreUserRequestsController();
 
 // Authentication Routes
+router.post('/pre-register', preUserRequestsController.saveUser);
+router.post('/pre-register/get', preUserRequestsController.getUserRequest);
+router.post('/pre-register/generate-payment', preUserRequestsController.generatePayment);
+router.post('/pre-register/event-info', preUserRequestsController.saveEventInfo);
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 

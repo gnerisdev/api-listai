@@ -14,7 +14,7 @@ class AuthController {
       // Validation
       if (!data.title) messages.push('Título do evento é obrigatório.');
       if (!data.slug) messages.push('Url do evento é obrigatório.');
-      if (!data.event) messages.push('Evento é obrigatório.');
+      if (!data.eventCategoryId) messages.push('Evento é obrigatório.');
 
       const validationTitle = ValidationUtils.title(data.title);
       const validationSubtitle = ValidationUtils.subtitle(data.subtitle);
@@ -31,7 +31,7 @@ class AuthController {
       if (validationLastName !== true) messages.push(validationLastName);
       if (validationEmail !== true) messages.push(validationEmail);
       if (validationPhoneNumber !== true) messages.push(validationPhoneNumber);
-      if (validationPassword !== true) messages.push(validationPassword);
+      if (!data.useUserPassword && validationPassword !== true) messages.push(validationPassword);
       if (!data.giftDeliveryPreference) messages
         .push('Escolha a melhor forma para você receber os presentes.');
 
@@ -47,6 +47,15 @@ class AuthController {
           success: false,
           message: 'Você só pode criar até 10 sugestões de presentes.' 
         });
+      }
+
+      if (data.useUserPassword) {
+        const preUserRequests = await prisma.pre_user_requests.findUnique({
+          where: { id: data.preUserRequestId },
+          select: { password: true }
+        });
+
+        data.password = preUserRequests.password;
       }
 
       const result = await prisma.$transaction(async (prisma) => {
@@ -72,7 +81,7 @@ class AuthController {
             last_name: data.lastName,
             email: data.email,
             phone_number: data.phoneNumber,
-            password: bcrypt.hashSync(data.password, 12),
+            password: data.useUserPassword ? data.password : bcrypt.hashSync(data.password, 12),
           },
         });
 
@@ -82,7 +91,7 @@ class AuthController {
             title: data.title,
             subtitle: data.subtitle,
             slug: data.slug,
-            event_category_id: Number(data.event),
+            event_category_id: Number(data.eventCategoryId),
             gift_delivery_preference: data.giftDeliveryPreference
           },
         });
@@ -103,8 +112,8 @@ class AuthController {
         }
 
         // Associating multiple gifts from giftList
-        if (Array.isArray(data.giftList) && data.giftList.length > 0) {
-          const giftAssociations = data.giftList.map(giftId => ({
+        if (Array.isArray(data.gifts) && data.gifts.length > 0) {
+          const giftAssociations = data.gifts.map(giftId => ({
             event_id: event.id, gift_id: giftId,
           }));
 
@@ -117,6 +126,14 @@ class AuthController {
           TOKEN_KEY,
           { expiresIn: '30d' }
         );
+
+        // Update preUserRequests
+        if (data.preUserRequestId) {
+          await prisma.pre_user_requests.update({
+            where: { id: data.preUserRequestId },
+            data: { account_created: true }
+          });
+        }
   
         return res.status(200).json({
           success: true,

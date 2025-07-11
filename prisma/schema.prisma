@@ -35,6 +35,21 @@ model users {
   payouts          payout_requests[]
 }
 
+model pre_user_requests {
+  id                Int              @id @default(autoincrement())
+  name              String
+  email             String           @unique
+  phone_number      String
+  payment_status    TransitionStatus @default(PENDING)
+  payment_link      String?
+  payment_reference String?
+  account_created   Boolean          @default(false)
+  paid_at           DateTime?
+  created_at        DateTime         @default(now())
+  event_info_json   Json?
+  password          String
+}
+
 model events {
   id                       Int                    @id @default(autoincrement())
   title                    String
@@ -276,15 +291,16 @@ model event_gift_transactions {
   id       Int @id @default(autoincrement())
   event_id Int
 
-  guest_email   String?
-  guest_name    String
-  guest_contact String?
-  total_price   Float
-  user_amount   Float?
-  percentage    Int?
-  created_at    DateTime         @default(now())
-  reference     String
-  status        TransitionStatus @default(PENDING)
+  guest_email    String?
+  guest_name     String
+  guest_contact  String?
+  total_price    Float
+  user_amount    Float?
+  percentage     Int?
+  created_at     DateTime         @default(now())
+  reference      String
+  status         TransitionStatus @default(PENDING)
+  items_snapshot Json?
 
   event events                         @relation(fields: [event_id], references: [id])
   items event_gift_transaction_items[]
@@ -355,10 +371,22 @@ enum PayoutsStatus {
 }
 
 model settings {
-  id              Int       @id @default(autoincrement())
-  percentage_gift Int       @default(15)
-  color           String    @default("#1d314c")
-  color_secondary String    @default("#432070")
-  created_at      DateTime  @default(now())
-  updated_at      DateTime? @updatedAt
+  id                Int       @id @default(autoincrement())
+  percentage_gift   Int       @default(15)
+  list_creation_fee Float     @default(39.90)
+  color             String    @default("#1d314c")
+  color_secondary   String    @default("#432070")
+  created_at        DateTime  @default(now())
+  updated_at        DateTime? @updatedAt
+}
+
+model email_verification_codes {
+  id         Int       @id @default(autoincrement())
+  email      String
+  code_hash  String
+  expires_at DateTime
+  used_at    DateTime?
+  created_at DateTime  @default(now())
+
+  @@index([email])
 }

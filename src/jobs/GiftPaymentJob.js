@@ -2,12 +2,13 @@ import prisma from '#prisma';
 import cron from 'node-cron';
 import { MercadoPagoService } from '../services/MercadoPagoService.js';
 import { EmailService } from '../services/EmailService.js';
+import moment from 'moment-timezone';
 
 const mercadoPagoService = new MercadoPagoService();
 const emailService = new EmailService();
 
 export function paymentStatus() {
-  cron.schedule('*/25 * * * *', async () => {
+  cron.schedule('*/35 * * * *', async () => {
     console.log('** Atualizar status de pagamento MP');
 
     const pendingTransactions = await prisma.event_gift_transactions.findMany({
@@ -72,6 +73,48 @@ export function paymentStatus() {
             });
           });
         }
+      } catch (error) {
+        console.error(`Erro ao processar transação ${item.id}:`, error);
+      }
+    }
+  });
+}
+
+export function updateTransactions() {
+  cron.schedule('*/1 * * * *', async () => {
+    console.log('** Atualizar transações não pagas');
+
+    const dataLimite = moment().subtract(2, 'days').toDate();
+    const transactions = await prisma.event_gift_transactions.findMany({
+      where: {
+        status: { not: 'APPROVED' },
+        created_at: { lte: dataLimite },
+      },
+    });
+
+    if (transactions.length < 1) return;
+
+    for (const item of transactions) {
+      try {
+        const transactionItems = await prisma.event_gift_transaction_items.findMany({
+          where: { event_gift_transaction_id: item.id },
+        });
+
+        console.log(transactionItems, '------- ')
+
+        // await prisma.$transaction(async (tx) => {
+        //   await tx.event_gift_transactions.update({
+        //     where: { id: item.id },
+        //     data: { status: 'RECUSED' }
+        //   });
+
+        //   // Update gifts available
+        //   const giftIds = transition.additional_info.items.map(item => item.id);
+        //   await tx.event_gifts.updateMany({
+        //     where: { id: { in: giftIds } },
+        //     data: { is_available: true },
+        //   });
+        // });
       } catch (error) {
         console.error(`Erro ao processar transação ${item.id}:`, error);
       }

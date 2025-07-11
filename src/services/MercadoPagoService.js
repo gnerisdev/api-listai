@@ -24,14 +24,15 @@ export class MercadoPagoService {
     }
   }
 
-  async getPaymentByReference(reference) {
+  async getPaymentByReference(reference, resultType = 'fisrt' /* 'fisrt' | 'last' | 'all' */) {
     try {
       const response = await mercadopago.payment.search({
         qs: { external_reference: reference }
       });
 
-      const [payment] = response.body.results;
-      return payment || null;
+      if (resultType === 'fisrt') return response.body.results[0] || null;
+      if (resultType === 'last')  return response.body.results[response.body.results.length - 1] || null;
+      if (resultType === 'all')   return response.body.results;
     } catch (error) {
       throw error;
     }

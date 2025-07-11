@@ -19,6 +19,7 @@ import SettingsController from '../controllers/admin/SettingsController.js';
 import TransactionsController from '../controllers/admin/TransactionsController.js'; 
 import LogController from '../controllers/admin/LogController.js';
 import GiftSuggestionsController from '../controllers/admin/GiftSuggestionsController.js';
+import PreUserRequestsController from '../controllers/admin/PreUserRequestsController.js';
 
 const router = Router();
 const upload = multer({ dest: 'tmp/' });
@@ -40,6 +41,7 @@ const eventServicesController = new EventServicesController();
 const settingsController = new SettingsController();
 const transactionsController = new TransactionsController();
 const logController = new LogController();
+const preUserRequestsController = new PreUserRequestsController();
 
 // Log Error
 router.get('/logs/error.txt', logController.exportErrorLog);
@@ -115,5 +117,9 @@ router.get('/dashboard/retrieve', adminAuthMiddleware, dashboardController.retri
 router.get('/settings', adminAuthMiddleware, settingsController.getSettings);
 router.put('/settings', adminAuthMiddleware, settingsController.updateSettings);
 router.get('/settings/percentage-gift', adminAuthMiddleware, settingsController.getPercentageGift);
+// User Event Request
+router.get('/pre-user-requests', adminAuthMiddleware, preUserRequestsController.getUserEventRequests);
+router.get('/pre-user-requests/info/:id', adminAuthMiddleware, preUserRequestsController.getInfo);
+
 
 export default router;

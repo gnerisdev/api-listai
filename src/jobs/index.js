@@ -1,13 +1,8 @@
 import { backup } from './DatabaseJob.js';
-import { paymentStatus } from './GiftPaymentJob.js';
-import { 
-  checkApprovedTransactionsForEventService, 
-  updateEventServiceTransaction 
-} from './ServicePaymentJob.js';
+import { paymentStatus, updateTransactions } from './GiftPaymentJob.js';
 
 export function startAllJobs() {
   paymentStatus();
-  updateEventServiceTransaction();
-  checkApprovedTransactionsForEventService();
+  // updateTransactions();
   backup();
 }
