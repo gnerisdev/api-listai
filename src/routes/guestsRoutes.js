@@ -1,10 +1,14 @@
 import { Router } from 'express';
-import { GiftsController } from '../controllers/admin/GiftsController.js';
+import EventController from '../controllers/guests/EventController.js';
+import PaymentController from '../controllers/guests/PaymentController.js';
 
 const router = Router();
+const eventController = new EventController();
+const paymentController = new PaymentController();
 
-const giftsController = new GiftsController(); 
-
-router.get('/gifts', giftsController.getGifts);
+router.get('/event/:slug', eventController.getEvent);
+router.post('/message/:event_id', eventController.sendMessage);
+router.post('/confirmation/:event_id', eventController.confirmPresence);
+router.post('/purchase', paymentController.initiatePayment);
 
 export default router;

@@ -7,6 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model admins {
+  id           Int     @id @default(autoincrement())
+  first_name   String
+  last_name    String
+  email        String  @unique
+  phone_number String
+  password     String
+  active       Boolean @default(true)
+}
+
 model users {
   id            Int       @id @default(autoincrement())
   first_name    String
@@ -20,33 +30,79 @@ model users {
   created_at    DateTime  @default(now())
   updated_at    DateTime? @updatedAt
 
-  events users_events[] @relation("UserEvents")
+  events           users_events[]     @relation("UserEvents")
+  gift_suggestions gift_suggestions[]
+  payouts          payout_requests[]
+}
+
+model pre_user_requests {
+  id                Int              @id @default(autoincrement())
+  name              String
+  email             String           @unique
+  phone_number      String
+  payment_status    TransitionStatus @default(PENDING)
+  payment_link      String?
+  payment_reference String?
+  account_created   Boolean          @default(false)
+  paid_at           DateTime?
+  created_at        DateTime         @default(now())
+  event_info_json   Json?
+  password          String
 }
 
 model events {
-  id                  Int       @id @default(autoincrement())
-  title               String
-  subtitle            String
-  slug                String    @unique
-  date                DateTime?
-  location            String?
-  description         String?   @db.VarChar(1000)
-  title_description   String?
-  color               String    @default("#432070")
-  active              Boolean   @default(true)
-  event_categories_id Int
-  created_at          DateTime  @default(now())
-  updated_at          DateTime? @updatedAt
+  id                       Int                    @id @default(autoincrement())
+  title                    String
+  subtitle                 String                 @db.VarChar(250)
+  slug                     String                 @unique
+  description              String?                @db.VarChar(1500)
+  title_description        String?
+  color                    String                 @default("#432070")
+  active                   Boolean                @default(true)
+  avatar_url               String?
+  avatar_cdn               String?
+  banner_url               String?
+  banner_cdn               String?
+  password                 String?
+  event_category_id        Int
+  show_gift_list           Boolean                @default(true)
+  show_guest_messages      Boolean                @default(true)
+  show_event_info          Boolean                @default(true)
+  allow_guest_confirmation Boolean                @default(true)
+  gift_delivery_preference GiftDeliveryPreference @default(cash)
+  created_at               DateTime               @default(now())
+  total_payout_received    Float?
+  updated_at               DateTime?              @updatedAt
 
-  users         users_events[]  @relation("UserEvents")
-  event_details event_details[]
+  users                      users_events[]               @relation("UserEvents")
+  event_details              event_details[]
+  event_gifts                event_gifts[]
+  gift_suggestions           gift_suggestions[]
+  event_guests               event_guests[]
+  event_gallery              event_gallery[]
+  event_services             event_services[]
+  event_messages             event_messages[]
+  event_gift_transactions    event_gift_transactions[]
+  payouts                    payout_requests[]
+  event_service_transactions event_service_transactions[]
 }
 
-model events_gifts {
-  event_id   Int
-  gift_id    Int
-  created_at DateTime  @default(now())
-  updated_at DateTime? @updatedAt
+enum GiftDeliveryPreference {
+  weekOfParty
+  weekAfterParty
+  cash
+}
+
+model event_gifts {
+  event_id     Int
+  gift_id      Int
+  created_at   DateTime  @default(now())
+  updated_at   DateTime? @updatedAt
+  deleted_at   DateTime?
+  is_available Boolean   @default(true)
+
+  event events @relation(fields: [event_id], references: [id])
+  gift  gifts  @relation(fields: [gift_id], references: [id])
 
   @@id([event_id, gift_id])
   @@index([gift_id])
@@ -72,8 +128,13 @@ model event_types {
   name        String
   description String
   active      Boolean   @default(true)
+  image_url   String?
+  image_cdn   String?
   created_at  DateTime  @default(now())
+  deleted_at  DateTime?
   updated_at  DateTime? @updatedAt
+
+  event_categories event_categories[]
 }
 
 model event_categories {
@@ -81,17 +142,25 @@ model event_categories {
   name          String
   description   String
   event_type_id Int
+  image_url     String?
+  image_cdn     String?
+  active        Boolean   @default(true)
   created_at    DateTime  @default(now())
+  deleted_at    DateTime?
   updated_at    DateTime? @updatedAt
+
+  event_type event_types @relation(fields: [event_type_id], references: [id])
+
+  gifts gifts[]
 }
 
 model event_details {
   id                    Int       @id @default(autoincrement())
   event_id              Int
   event_date            DateTime
-  start_time            DateTime
-  end_time              DateTime
-  event_type            String
+  start_time            DateTime?
+  end_time              DateTime?
+  event_type            String?
   event_location        String?
   postal_code           String?
   full_address          String?
@@ -109,11 +178,215 @@ model event_details {
 }
 
 model gifts {
-  id                  Int       @id @default(autoincrement())
-  name                String
-  description         String
-  price               Float
-  event_categories_id Int
-  created_at          DateTime  @default(now())
-  updated_at          DateTime? @updatedAt
+  id                Int       @id @default(autoincrement())
+  name              String
+  description       String    @db.VarChar(1500)
+  price             Float
+  image_url         String?
+  image_cdn         String?
+  event_category_id Int
+  created_at        DateTime  @default(now())
+  updated_at        DateTime? @updatedAt
+  deleted_at        DateTime?
+  active            Boolean   @default(true)
+
+  event_categories             event_categories               @relation(fields: [event_category_id], references: [id])
+  event_gifts                  event_gifts[]
+  event_gift_transaction_items event_gift_transaction_items[]
+}
+
+model gift_suggestions {
+  id          Int       @id @default(autoincrement())
+  user_id     Int
+  event_id    Int
+  title       String    @db.VarChar(150)
+  description String?   @db.VarChar(500)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime? @updatedAt
+
+  user  users  @relation(fields: [user_id], references: [id])
+  event events @relation(fields: [event_id], references: [id])
+
+  @@index([user_id])
+  @@index([event_id])
+}
+
+model event_guests {
+  id           Int      @id @default(autoincrement())
+  first_name   String
+  last_name    String
+  email        String
+  phone_number String
+  event_id     Int
+  confirmed    Boolean  @default(false)
+  companions   Json?
+  created_at   DateTime @default(now())
+
+  event events @relation(fields: [event_id], references: [id])
+
+  @@unique([event_id, email])
+  @@index([event_id])
+}
+
+model event_messages {
+  id         Int      @id @default(autoincrement())
+  event_id   Int
+  first_name String
+  last_name  String
+  email      String
+  message    String   @db.Text
+  created_at DateTime @default(now())
+
+  event events @relation(fields: [event_id], references: [id])
+
+  @@unique([event_id, email])
+}
+
+model event_gallery {
+  id         Int       @id @default(autoincrement())
+  url        String
+  cdn        String
+  type       String
+  event_id   Int
+  created_at DateTime  @default(now())
+  updated_at DateTime? @updatedAt
+
+  event events @relation(fields: [event_id], references: [id])
+
+  @@index([event_id])
+}
+
+model services {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String
+  type        String
+  quantity    Int
+  price       Float
+  is_default  Boolean   @default(false)
+  active      Boolean   @default(true)
+  created_at  DateTime  @default(now())
+  deleted_at  DateTime?
+
+  event_services             event_services[]
+  event_service_transactions event_service_transactions[]
+}
+
+model event_services {
+  id                           Int      @id @default(autoincrement())
+  event_id                     Int
+  service_id                   Int
+  event_service_transaction_id Int?
+  quantity                     Int
+  total_price                  Float
+  created_at                   DateTime @default(now())
+
+  event   events   @relation(fields: [event_id], references: [id])
+  service services @relation(fields: [service_id], references: [id])
+
+  @@index([event_id])
+}
+
+model event_gift_transactions {
+  id       Int @id @default(autoincrement())
+  event_id Int
+
+  guest_email    String?
+  guest_name     String
+  guest_contact  String?
+  total_price    Float
+  user_amount    Float?
+  percentage     Int?
+  created_at     DateTime         @default(now())
+  reference      String
+  status         TransitionStatus @default(PENDING)
+  items_snapshot Json?
+
+  event events                         @relation(fields: [event_id], references: [id])
+  items event_gift_transaction_items[]
+
+  @@index([event_id])
+}
+
+model event_gift_transaction_items {
+  id                        Int    @id @default(autoincrement())
+  event_gift_transaction_id Int
+  gift_id                   Int
+  quantity                  Int
+  gift_name                 String
+  unit_price                Float
+
+  event_gift_transaction event_gift_transactions @relation(fields: [event_gift_transaction_id], references: [id])
+  gift                   gifts                   @relation(fields: [gift_id], references: [id])
+}
+
+model event_service_transactions {
+  id           Int     @id @default(autoincrement())
+  event_id     Int
+  service_id   Int
+  total_price  Float
+  payment_link String?
+
+  expiration_at DateTime
+  created_at    DateTime         @default(now())
+  reference     String
+  status        TransitionStatus @default(PENDING)
+
+  event   events   @relation(fields: [event_id], references: [id])
+  service services @relation(fields: [service_id], references: [id])
+
+  @@index([event_id])
+  @@index([service_id])
+}
+
+enum TransitionStatus {
+  APPROVED
+  PENDING
+  RECUSED
+  CANCELLED
+}
+
+model payout_requests {
+  id       Int @id @default(autoincrement())
+  user_id  Int
+  event_id Int
+
+  requested_amount Float
+  paid_amount      Float?
+  status           PayoutsStatus @default(PENDING)
+  payment_method   String?
+  paid_at          DateTime?
+  created_at       DateTime      @default(now())
+  updated_at       DateTime?     @updatedAt
+
+  user  users  @relation(fields: [user_id], references: [id])
+  event events @relation(fields: [event_id], references: [id])
+}
+
+enum PayoutsStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+}
+
+model settings {
+  id                Int       @id @default(autoincrement())
+  percentage_gift   Int       @default(15)
+  list_creation_fee Float     @default(39.90)
+  color             String    @default("#1d314c")
+  color_secondary   String    @default("#432070")
+  created_at        DateTime  @default(now())
+  updated_at        DateTime? @updatedAt
+}
+
+model email_verification_codes {
+  id         Int       @id @default(autoincrement())
+  email      String
+  code_hash  String
+  expires_at DateTime
+  used_at    DateTime?
+  created_at DateTime  @default(now())
+
+  @@index([email])
 }

@@ -29,12 +29,13 @@ export class ValidationUtils {
   }
 
   static phoneNumber(value) {
+    const onlyNumbers = value.replace(/\D/g, '');
     const validationPhoneNumber = /^\d{10,15}$/;
-    return validationPhoneNumber.test(value) ? true : 'Número de celeluar inválido.';
+    return validationPhoneNumber.test(onlyNumbers) ? true : 'Número de celular inválido.';
   }
   
   static password(value) {
-    const validationPassword = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    const validationPassword = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
     //Minimum eight characters, at least one letter and one number:
     return validationPassword.test(value)
       ? true
@@ -42,27 +43,27 @@ export class ValidationUtils {
   }
 
   static title(value) {
-    return value && value.length >= 5 && value.length <= 150
+    return value && value.length >= 2 && value.length <= 150
       ? true
-      : 'O título precisa ter no mínimo 5 caracteres e no máximo 150 caracteres.';
+      : 'Título deve ter entre 2 e 150 caracteres.';
   }
 
   static subtitle(value) {
-    return value && value.length >= 5 && value.length <= 150
+    return value && value.length >= 2 && value.length <= 250
       ? true
-      : 'O subtítulo precisa ter no mínimo 5 caracteres e no máximo 150 caracteres.';
+      : 'Subtítulo deve ter entre 2 e 250 caracteres.';
   }
 
   static titleDescription(value) {
-    return value && value.length >= 5 && value.length <= 150
+    return value && value.length >= 2 && value.length <= 150
       ? true
-      : 'A título da Introdução precisa ter no mínimo 5 caracteres e no máximo 150 caracteres.';
+      : 'Título da introdução deve ter entre 2 e 150 caracteres.';
   }
 
   static description(value) {
     return value && value.length >= 5 && value.length <= 1000
       ? true
-      : 'A Introdução precisa ter no mínimo 5 caracteres e no máximo 1000 caracteres.';
+       : 'Descrição deve ter entre 5 e 1000 caracteres.';
   }
  
   static string(value) {
@@ -80,7 +81,7 @@ export class ValidationUtils {
 
   static hours(value) {  
     const regex = /^([01]\d|2[0-3]):([0-5]\d)$/;
-    if (!regex.test(value)) return 'Formato inválido';
+    if (!regex.test(value)) return 'Horas inválida.';
 
     const [hours, minutes] = value.split(':').map(Number);
     if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {

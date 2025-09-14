@@ -1,26 +1,49 @@
-import mercadopago from "mercadopago";
+import mercadopago from 'mercadopago';
+import { MP_ACCESS_TOKEN } from '../environments/index.js';
 
-export class NotificationService {
-  #accessToken = 'TEST-1944498221096339-010600-f3917d8d9a0242baa5b2236a9d4ac87e-225270724';
-
+export class MercadoPagoService {
   constructor() {
-    this.mp = mercadopago.configure({ access_token: accessToken });
+    mercadopago.configure({ access_token: MP_ACCESS_TOKEN });
   }
 
-  async getPreferenceId(products) {
+  async getPreference(preference) {
     try {
-      const preference = {
-        items: products.map((item) => ({
-          title: item.name, 
-          unit_price: item.priceTotal, 
-          quantity: item.quantity
-        }))
-      };
-      const response = await this.mp.preferences.create(preference);
-
-      return response.body.id;
+      const response = await mercadopago.preferences.create(preference);
+      return response.body;
     } catch (error) {
-      console.error('erroo ', error);
+      throw error;
+    }
+  }
+
+  async getPaymentById(payment_id) {
+    try {
+      const response = await mercadopago.payment.findById(payment_id);
+      return response.body;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getPaymentByReference(reference, resultType = 'fisrt' /* 'fisrt' | 'last' | 'all' */) {
+    try {
+      const response = await mercadopago.payment.search({
+        qs: { external_reference: reference }
+      });
+
+      if (resultType === 'fisrt') return response.body.results[0] || null;
+      if (resultType === 'last')  return response.body.results[response.body.results.length - 1] || null;
+      if (resultType === 'all')   return response.body.results;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAllPayments(filters = {}) {
+    try {
+      const response = await mercadopago.payment.search({ qs: filters });
+      return response.body.results;
+    } catch (error) {
+      throw error;
     }
   }
 }
